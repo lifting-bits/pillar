@@ -9,9 +9,9 @@
 cmake_minimum_required(VERSION 3.28)
 
 include("cmake/ccache.cmake")
-include_directories(/home/ghost/llvm17/Build/vast/include)
+include_directories(/home/ghost/llvm17/Install/Release/include)
 
-project("miller" C CXX)
+project("pillar" C CXX)
 
 include(CMakeDependentOption)
 include(GNUInstallDirs)

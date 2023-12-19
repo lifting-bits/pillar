@@ -6,7 +6,7 @@
 
 #include "AST.h"
 
-namespace miller {
+namespace pillar {
 namespace ast {
 namespace {
 static const clang::FPOptionsOverride kEmptyFPO;
@@ -406,5 +406,5 @@ clang::Stmt *AST::LiftOpImpl(clang::DeclContext *dc, mlir::Operation &op) {
 }
 
 }  // namespace ast
-}  // namespace miller
+}  // namespace pillar
 

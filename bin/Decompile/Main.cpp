@@ -8,39 +8,49 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <miller/VAST.h>
-#include <miller/Clang.h>
+// #include <pillar/VAST.h>
+// #include <pillar/Clang.h>
+#include "../../include/pillar/VAST.h"
+#include "../../include/pillar/Clang.h"
 #include <string>
+#include <optional>
 
-int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    std::cerr << "Missing path to VAST IR module\n";
+using namespace std;
+
+int main(int argc, char *argv[])
+{
+  if (argc != 2)
+  {
+    cerr << "Missing path to VAST IR module\n";
     return EXIT_FAILURE;
   }
 
-  std::ifstream is(argv[1]);
-  std::string data;
-  for (std::string line; std::getline(is, line); line.clear()) {
-    data.insert(data.end(), line.begin(), line.end());
+  string ir_file_name = argv[1];
+  ifstream is(ir_file_name);
+  string ir_data;
+  for (string line; getline(is, line); line.clear())
+  {
+    ir_data.insert(ir_data.end(), line.begin(), line.end());
   }
-
-  auto maybe_module = miller::VASTModule::Deserialize(data);
-  if (!maybe_module) {
-    std::cerr << "Invalid VAST IR module\n";
+  auto maybe_module = pillar::VASTModule::Deserialize(ir_data);
+  if (!maybe_module)
+  {
+    cerr << "Invalid VAST IR module\n";
     return EXIT_FAILURE;
   }
 
-  miller::VASTModule module = std::move(maybe_module.value());
+  pillar::VASTModule module = move(maybe_module.value());
 
-  auto maybe_ast = miller::ClangModule::Lift(module);
-  if (!maybe_ast) {
-    std::cerr << "Could not lift VAST IR module into an AST\n";
+  auto maybe_ast = pillar::ClangModule::Lift(module);
+  if (!maybe_ast)
+  {
+    cerr << "Could not lift VAST IR module into an AST\n";
     return EXIT_FAILURE;
   }
 
-  miller::ClangModule ast = std::move(maybe_ast.value());
+  pillar::ClangModule ast = move(maybe_ast.value());
 
-  (void) ast;
+  (void)ast;
 
   return EXIT_SUCCESS;
 }

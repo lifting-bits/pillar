@@ -42,7 +42,7 @@
 
 #include "AST.h"
 
-namespace miller {
+namespace pillar {
 namespace {
 
 static constexpr clang::SourceLocation kEmptyLoc;
@@ -154,7 +154,7 @@ ClangModuleImpl::~ClangModuleImpl(void) {
 ClangModuleImpl::ClangModuleImpl(const llvm::Triple &triple)
     : llvm(&gLLVM),
       unit(clang::tooling::buildASTFromCodeWithArgs("", Arguments(triple),
-                                                    "miller.c")),
+                                                    "pillar.c")),
       ctx(unit->getASTContext()),
       sema(unit->getSema()) {}
 
@@ -233,4 +233,4 @@ clang::ReturnStmt *ClangModuleImpl::CreateReturn(clang::Expr *val) {
   return clang::ReturnStmt::Create(ctx, kEmptyLoc, val, nullptr);
 }
 
-}  // namespace miller
+}  // namespace pillar

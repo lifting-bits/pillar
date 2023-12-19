@@ -6,10 +6,10 @@
 # the LICENSE file found in the root directory of this source tree.
 #
 
-add_executable("miller-decompile"
+add_executable("pillar-decompile"
   "Main.cpp"
 )
 
-target_link_libraries("miller-decompile"
-  "miller"
+target_link_libraries("pillar-decompile"
+  "pillar"
 )

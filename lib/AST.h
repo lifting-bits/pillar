@@ -47,7 +47,7 @@
 #include <vast/Interfaces/TypeQualifiersInterfaces.hpp>
 #include <vast/Util/TypeSwitch.hpp>
 
-namespace miller {
+namespace pillar {
 namespace ast {
 
 class AST final : public ClangModuleImpl {
@@ -134,4 +134,4 @@ class AST final : public ClangModuleImpl {
 };
 
 }  // namespace ast
-}  // namespace miller
+}  // namespace pillar

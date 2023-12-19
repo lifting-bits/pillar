@@ -6,7 +6,7 @@
 # the LICENSE file found in the root directory of this source tree.
 #
 
-set(source_include_dir "${PROJECT_SOURCE_DIR}/include/miller")
+set(source_include_dir "${PROJECT_SOURCE_DIR}/include/pillar")
 
 
 if (MLIR_LINK_MLIR_DYLIB)
@@ -59,7 +59,7 @@ set(VAST_LIBS
   VAST::VASTCodeGen
 )
 
-add_library("miller" STATIC
+add_library("pillar" STATIC
   "AST.h"
   "AST.cpp"
   "ASTDecl.cpp"
@@ -75,7 +75,7 @@ add_library("miller" STATIC
   "Clang.h"
 )
 
-target_link_libraries("miller"
+target_link_libraries("pillar"
   PUBLIC
     ${VAST_LIBS}
     ${MLIR_LIBS}
@@ -94,14 +94,14 @@ target_link_libraries("miller"
     clangIndex
 )
 
-target_include_directories("miller"
+target_include_directories("pillar"
   PUBLIC
     "$<BUILD_INTERFACE:${LLVM_INCLUDE_DIRS};${LLVM_INCLUDE_DIR};${CLANG_INCLUDE_DIRS}>"
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
     $"<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-target_compile_features("miller"
+target_compile_features("pillar"
   PRIVATE
     cxx_std_20
 )

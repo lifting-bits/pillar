@@ -6,7 +6,7 @@
 
 #include "AST.h"
 
-namespace miller {
+namespace pillar {
 namespace ast {
 
 clang::FunctionDecl *AST::LiftFuncOp(clang::DeclContext *sdc,
@@ -71,5 +71,5 @@ clang::FunctionDecl *AST::LiftFuncOp(clang::DeclContext *sdc,
 }
 
 }  // namespace ast
-}  // namespace miller
+}  // namespace pillar
 

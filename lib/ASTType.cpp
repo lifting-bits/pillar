@@ -41,7 +41,7 @@
 #include <vast/Interfaces/TypeQualifiersInterfaces.hpp>
 #include <vast/Util/TypeSwitch.hpp>
 
-namespace miller {
+namespace pillar {
 namespace ast {
 
 bool AST::CharIsUnsigned(void) const {
@@ -213,4 +213,4 @@ clang::QualType AST::LiftFunctionType(mlir::FunctionType ty) {
 }
 
 }  // namespace ast
-}  // namespace miller
+}  // namespace pillar

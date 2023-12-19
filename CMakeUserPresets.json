@@ -1,51 +1,50 @@
 {
-    "version": 3,
-    "cmakeMinimumRequired": {
-        "major": 3,
-        "minor": 28,
-        "patch": 0
-    },
-    "configurePresets": [
-        {
-            "name": "miller-rel-with-debinfo",
-            "displayName": "Miller release with debug info",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "generator": "Ninja Multi-Config",
-            "cacheVariables": {
-                "CMAKE_CONFIGURATION_TYPES": "RelWithDebInfo;Release;MinSizeRel;Debug",
-                "CMAKE_C_COMPILER": "/usr/bin/clang-17",
-                "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
-                "CMAKE_CXX_COMPILER": "/usr/bin/clang++-17",
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
-                "MLIR_DIR": "/home/ghost/llvm17/Build/Debug/llvm-project/lib/cmake/mlir",
-                "LLVM_DIR": "/home/ghost/llvm17/Build/Debug/llvm-project/lib/cmake/llvm",
-                "Clang_DIR": "/home/ghost/llvm17/Build/Debug/llvm-project/lib/cmake/clang",
-                "LLVM_USE_LINKER": "lld",
-                "LLVM_ENABLE_RTTI": true,
-                "MILLER_WARNINGS_AS_ERRORS": false,
-                "gap_DIR": "/home/ghost/llvm17/Build/gap/lib/cmake/gap",
-                "VAST_DIR": "/home/ghost/llvm17/Build/vast/lib/cmake/VAST",
-                "GAP_ENABLE_TESTING":false,
-                "GAP_ENABLE_EXAMPLES":false,
-                "GAP_ENABLE_COROUTINES":true 
-            }
-        }
-    ],
-    "buildPresets": [
-        {
-            "name": "miller-rel-with-debinfo",
-            "displayName": "Miller release with debug info",
-            "configurePreset": "miller-rel-with-debinfo",
-            "configuration": "RelWithDebInfo",
-            "jobs": 1
-        }
-    ],
-    "testPresets": [
-        {
-            "name": "default",
-            "displayName": "Default",
-            "configurePreset": "miller-rel-with-debinfo"
-        }
-    ]
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "pillar-rel-with-debinfo",
+      "displayName": "pillar release with debug info",
+      "binaryDir": "/home/ghost/llvm17/Build/Release/pillar",
+      "generator": "Ninja Multi-Config",
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "RelWithDebInfo;Release;MinSizeRel;Debug",
+        "CMAKE_C_COMPILER": "/usr/bin/clang-17",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++-17",
+        "CMAKE_INSTALL_PREFIX": "/home/ghost/llvm17/Install/Release",
+        "MLIR_DIR": "/home/ghost/llvm17/Install/Release/lib/cmake/mlir",
+        "LLVM_DIR": "/home/ghost/llvm17//Install/Release/lib/cmake/llvm",
+        "Clang_DIR": "/home/ghost/llvm17//Install/Release/lib/cmake/clang",
+        "LLVM_USE_LINKER": "lld",
+        "LLVM_ENABLE_RTTI": true,
+        "PILLAR_WARNINGS_AS_ERRORS": false,
+        "gap_DIR": "/home/ghost/llvm17//Install/Release/lib/cmake/gap",
+        "VAST_DIR": "/home/ghost/llvm17//Install/Release/lib/cmake/VAST",
+        "GAP_ENABLE_TESTING": false,
+        "GAP_ENABLE_EXAMPLES": false,
+        "GAP_ENABLE_COROUTINES": true
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "pillar-rel-with-debinfo",
+      "displayName": "pillar release with debug info",
+      "configurePreset": "pillar-rel-with-debinfo",
+      "configuration": "RelWithDebInfo",
+      "jobs": 1
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "displayName": "Default",
+      "configurePreset": "pillar-rel-with-debinfo"
+    }
+  ]
 }
-

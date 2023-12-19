@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <miller/Clang.h>
+#include <pillar/Clang.h>
 #include <clang/AST/OperationKinds.h>
 
 namespace llvm {
@@ -34,7 +34,7 @@ class ValueDecl;
 namespace vast {
 
 }  // namespace vast
-namespace miller {
+namespace pillar {
 
 class ClangModuleImpl {
 
@@ -175,4 +175,4 @@ class ClangModuleImpl {
   clang::ReturnStmt *CreateReturn(clang::Expr *val);
 };
 
-}  // namespace miller
+}  // namespace pillar
