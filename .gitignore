@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Vscode files
+.vscode/
+
+# My[BMT] Sandbox
+.sandbox/
