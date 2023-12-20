@@ -6,12 +6,15 @@
 
 #include "AST.h"
 
-namespace pillar {
-namespace ast {
+namespace pillar
+{
+  namespace ast
+  {
 
 clang::FunctionDecl *AST::LiftFuncOp(clang::DeclContext *sdc,
                                      clang::DeclContext *ldc,
-                                     vast::hl::FuncOp func) {
+                                         vast::hl::FuncOp func)
+    {
   clang::QualType fty = LiftType(func.getFunctionType());
   clang::FunctionDecl *func_decl = CreateFunctionDecl(
       sdc, ldc, fty, func.getName());
@@ -27,7 +30,8 @@ clang::FunctionDecl *AST::LiftFuncOp(clang::DeclContext *sdc,
 
   // Lift the arguments.
   unsigned arg_i = 0u;
-  for (mlir::BlockArgument arg : func.getArguments()) {
+      for (mlir::BlockArgument arg : func.getArguments())
+      {
 
     // TODO(pag): Figure out how to get this from VAST.
     clang::IdentifierInfo *arg_name =
@@ -47,7 +51,8 @@ clang::FunctionDecl *AST::LiftFuncOp(clang::DeclContext *sdc,
   // TODO(pag): Linkage.
 
   mlir::Region &body = func.getBody();
-  if (!body.hasOneBlock()) {
+      if (!body.hasOneBlock())
+      {
     assert(body.getBlocks().empty());
     return func_decl;
   }
@@ -55,9 +60,12 @@ clang::FunctionDecl *AST::LiftFuncOp(clang::DeclContext *sdc,
   // Lift each statement from the function body, collecting them into
   // `body_stmts`.
   std::vector<clang::Stmt *> body_stmts;
-  for (mlir::Operation &op : body.front()) {
-    if (clang::Stmt *stmt = LiftOp(func_decl, op)) {
-      if (!ElideFromCompoundStmt(op, stmt)) {
+      for (mlir::Operation &op : body.front())
+      {
+        if (clang::Stmt *stmt = LiftOp(func_decl, op))
+        {
+          if (!ElideFromCompoundStmt(op, stmt))
+          {
         body_stmts.emplace_back(stmt);
       }
     }
@@ -70,6 +78,5 @@ clang::FunctionDecl *AST::LiftFuncOp(clang::DeclContext *sdc,
   return func_decl;
 }
 
-}  // namespace ast
-}  // namespace pillar
-
+  } // namespace ast
+} // namespace pillar

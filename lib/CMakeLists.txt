@@ -79,7 +79,10 @@ target_link_libraries("pillar"
   PUBLIC
     ${VAST_LIBS}
     ${MLIR_LIBS}
-        
+    "gap::gap"
+    "gap::gap-core"
+    "gap::gap-settings"
+    "std::coroutines"
     clang
     clangFrontend
     clangDriver
@@ -91,7 +94,36 @@ target_link_libraries("pillar"
     clangLex
     clangBasic
     clangTooling
+    clangFrontendTool
     clangIndex
+     clangCodeGen
+     clangSema 
+     clangStaticAnalyzerFrontend 
+     clangStaticAnalyzerCheckers 
+     clangStaticAnalyzerCore 
+     clangARCMigrate 
+     clangRewriteFrontend 
+     clangRewrite
+
+     LLVMAArch64CodeGen
+     LLVMAArch64AsmParser
+     LLVMAArch64Desc
+     LLVMAArch64Disassembler
+     LLVMAArch64Info
+     LLVMAArch64Utils
+     LLVMX86CodeGen
+     LLVMX86AsmParser
+     LLVMX86Desc
+     LLVMX86Disassembler
+     LLVMX86Info
+     LLVMARMCodeGen
+     LLVMARMAsmParser
+     LLVMARMDesc
+     LLVMARMDisassembler
+     LLVMARMInfo
+     LLVMARMUtils
+     LLVMTarget
+     LLVMOption
 )
 
 target_include_directories("pillar"

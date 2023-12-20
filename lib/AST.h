@@ -47,10 +47,13 @@
 #include <vast/Interfaces/TypeQualifiersInterfaces.hpp>
 #include <vast/Util/TypeSwitch.hpp>
 
-namespace pillar {
-namespace ast {
+namespace pillar
+{
+  namespace ast
+  {
 
-class AST final : public ClangModuleImpl {
+    class AST final : public ClangModuleImpl
+    {
  private:
   const bool char_is_unsigned;
   const std::shared_ptr<mlir::Operation> module;
@@ -133,5 +136,5 @@ class AST final : public ClangModuleImpl {
   clang::Expr *LiftRemSOp(clang::DeclContext *dc, mlir::Operation &op);
 };
 
-}  // namespace ast
-}  // namespace pillar
+  } // namespace ast
+} // namespace pillar

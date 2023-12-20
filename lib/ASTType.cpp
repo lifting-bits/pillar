@@ -41,101 +41,123 @@
 #include <vast/Interfaces/TypeQualifiersInterfaces.hpp>
 #include <vast/Util/TypeSwitch.hpp>
 
-namespace pillar {
-namespace ast {
+namespace pillar
+{
+  namespace ast
+  {
 
-bool AST::CharIsUnsigned(void) const {
-  auto bty = clang::dyn_cast<clang::BuiltinType>(ctx.CharTy.getTypePtr());
-  switch (bty->getKind()) {
-    case clang::BuiltinType::Char_U:
-    case clang::BuiltinType::UChar:
-      return true;
-    case clang::BuiltinType::Char_S:
-    case clang::BuiltinType::SChar:
-      return false;
-    default:
-      assert(false);
-      return false;
-  }
-}
+    bool AST::CharIsUnsigned(void) const
+    {
+      auto bty = clang::dyn_cast<clang::BuiltinType>(ctx.CharTy.getTypePtr());
+      switch (bty->getKind())
+      {
+      case clang::BuiltinType::Char_U:
+      case clang::BuiltinType::UChar:
+        return true;
+      case clang::BuiltinType::Char_S:
+      case clang::BuiltinType::SChar:
+        return false;
+      default:
+        assert(false);
+        return false;
+      }
+    }
 
-// Port VAST hl qualifiers into a Clang qualified type.
-clang::QualType AST::Qualify(clang::QualType ty,
-                                   vast::hl::UCVQualifiersAttr quals) {
-  if (!quals) {
-    return ty;
-  }
-  if (quals.hasConst()) {
-    ty = ty.withConst();
-  }
-  if (quals.hasVolatile()) {
-    ty = ty.withVolatile();
-  }
-  return ty;
-}
+    // Port VAST hl qualifiers into a Clang qualified type.
+    clang::QualType AST::Qualify(clang::QualType ty,
+                                 vast::hl::UCVQualifiersAttr quals)
+    {
+      if (!quals)
+      {
+        return ty;
+      }
+      if (quals.hasConst())
+      {
+        ty = ty.withConst();
+      }
+      if (quals.hasVolatile())
+      {
+        ty = ty.withVolatile();
+      }
+      return ty;
+    }
 
-// Port VAST hl qualifiers into a Clang qualified type.
-clang::QualType AST::Qualify(clang::QualType ty,
-                                   vast::hl::CVRQualifiersAttr quals) {
-  if (!quals) {
-    return ty;
-  }
-  if (quals.hasConst()) {
-    ty = ty.withConst();
-  }
-  if (quals.hasVolatile()) {
-    ty = ty.withVolatile();
-  }
-  if (quals.hasRestrict()) {
-    ty = ty.withRestrict();
-  }
-  return ty;
-}
+    // Port VAST hl qualifiers into a Clang qualified type.
+    clang::QualType AST::Qualify(clang::QualType ty,
+                                 vast::hl::CVRQualifiersAttr quals)
+    {
+      if (!quals)
+      {
+        return ty;
+      }
+      if (quals.hasConst())
+      {
+        ty = ty.withConst();
+      }
+      if (quals.hasVolatile())
+      {
+        ty = ty.withVolatile();
+      }
+      if (quals.hasRestrict())
+      {
+        ty = ty.withRestrict();
+      }
+      return ty;
+    }
 
-// Port VAST hl qualifiers into a Clang qualified type.
-clang::QualType AST::Qualify(clang::QualType ty,
-                                   vast::hl::CVQualifiersAttr quals) {
-  if (!quals) {
-    return ty;
-  }
-  if (quals.hasConst()) {
-    ty = ty.withConst();
-  }
-  if (quals.hasVolatile()) {
-    ty = ty.withVolatile();
-  }
-  return ty;
-}
+    // Port VAST hl qualifiers into a Clang qualified type.
+    clang::QualType AST::Qualify(clang::QualType ty,
+                                 vast::hl::CVQualifiersAttr quals)
+    {
+      if (!quals)
+      {
+        return ty;
+      }
+      if (quals.hasConst())
+      {
+        ty = ty.withConst();
+      }
+      if (quals.hasVolatile())
+      {
+        ty = ty.withVolatile();
+      }
+      return ty;
+    }
 
-clang::QualType AST::LiftType(mlir::Type ty) {
-  if (auto it = type_map.find(ty); it != type_map.end()) {
-    return it->second;
-  }
+    clang::QualType AST::LiftType(mlir::Type ty)
+    {
+      if (auto it = type_map.find(ty); it != type_map.end())
+      {
+        return it->second;
+      }
 
 #define HL_TYPE_CASE(hl_type_name, var_name, ...) \
-    Case<vast::hl::hl_type_name>( \
+  Case<vast::hl::hl_type_name>(                   \
         [=] (vast::hl::hl_type_name var_name) -> clang::QualType __VA_ARGS__)
 
 #define HL_BUILTIN_TYPE_CASE(hl_type_name, ctx_type_name) \
-    HL_TYPE_CASE(hl_type_name, bty, { \
-      return Qualify(ctx.ctx_type_name, bty.getQuals()); \
-    })
+  HL_TYPE_CASE(hl_type_name, bty, {                       \
+    return Qualify(ctx.ctx_type_name, bty.getQuals());    \
+  })
 
-#define HL_BUILTIN_INT_CASE(hl_type_name, signed_type_name, unsigned_type_name)\
-    HL_TYPE_CASE(hl_type_name, ity, { \
-      vast::hl::UCVQualifiersAttr ucv = ity.getQuals(); \
-      if (ucv && ucv.hasUnsigned()) { \
-        return Qualify(ctx.unsigned_type_name, ucv); \
-      } else { \
-        return Qualify(ctx.signed_type_name, ucv); \
-      } \
-    })
+#define HL_BUILTIN_INT_CASE(hl_type_name, signed_type_name, unsigned_type_name) \
+  HL_TYPE_CASE(hl_type_name, ity, {                                             \
+    vast::hl::UCVQualifiersAttr ucv = ity.getQuals();                           \
+    if (ucv && ucv.hasUnsigned())                                               \
+    {                                                                           \
+      return Qualify(ctx.unsigned_type_name, ucv);                              \
+    }                                                                           \
+    else                                                                        \
+    {                                                                           \
+      return Qualify(ctx.signed_type_name, ucv);                                \
+    }                                                                           \
+  })
 
-  return type_map.try_emplace(
-      ty, vast::TypeSwitch<mlir::Type, clang::QualType>(ty)
-        .HL_BUILTIN_TYPE_CASE(VoidType, VoidTy)
-        .HL_BUILTIN_TYPE_CASE(BoolType, BoolTy)
-        .HL_TYPE_CASE(CharType, cty, {
+      return type_map.try_emplace(
+                         ty, vast::TypeSwitch<mlir::Type, clang::QualType>(ty)
+                                 .HL_BUILTIN_TYPE_CASE(VoidType, VoidTy)
+                                 .HL_BUILTIN_TYPE_CASE(BoolType, BoolTy)
+                                 .HL_TYPE_CASE(CharType, cty, {
             vast::hl::UCVQualifiersAttr ucv = cty.getQuals();
             if (ucv && ucv.hasUnsigned()) {
               if (char_is_unsigned) {
@@ -147,24 +169,21 @@ clang::QualType AST::LiftType(mlir::Type ty) {
               return Qualify(ctx.SignedCharTy, ucv);
             } else {
               return Qualify(ctx.CharTy, ucv);
-            }
-        })
-        .HL_BUILTIN_INT_CASE(ShortType, ShortTy, UnsignedShortTy)
-        .HL_BUILTIN_INT_CASE(IntType, IntTy, UnsignedIntTy)
-        .HL_BUILTIN_INT_CASE(LongType, LongTy, UnsignedLongTy)
-        .HL_BUILTIN_INT_CASE(LongLongType, LongLongTy, UnsignedLongLongTy)
-        .HL_BUILTIN_INT_CASE(Int128Type, Int128Ty, UnsignedInt128Ty)
-        .HL_BUILTIN_TYPE_CASE(HalfType, HalfTy)
-        .HL_BUILTIN_TYPE_CASE(BFloat16Type, BFloat16Ty)
-        .HL_BUILTIN_TYPE_CASE(FloatType, FloatTy)
-        .HL_BUILTIN_TYPE_CASE(DoubleType, DoubleTy)
-        .HL_BUILTIN_TYPE_CASE(LongDoubleType, LongDoubleTy)
-        .HL_BUILTIN_TYPE_CASE(Float128Type, Float128Ty)
-        .HL_TYPE_CASE(PointerType, pty, {
-            return Qualify(ctx.getPointerType(LiftType(pty.getElementType())),
-                           pty.getQuals());
-        })
-        .HL_TYPE_CASE(ArrayType, aty, {
+            } })
+                                 .HL_BUILTIN_INT_CASE(ShortType, ShortTy, UnsignedShortTy)
+                                 .HL_BUILTIN_INT_CASE(IntType, IntTy, UnsignedIntTy)
+                                 .HL_BUILTIN_INT_CASE(LongType, LongTy, UnsignedLongTy)
+                                 .HL_BUILTIN_INT_CASE(LongLongType, LongLongTy, UnsignedLongLongTy)
+                                 .HL_BUILTIN_INT_CASE(Int128Type, Int128Ty, UnsignedInt128Ty)
+                                 .HL_BUILTIN_TYPE_CASE(HalfType, HalfTy)
+                                 .HL_BUILTIN_TYPE_CASE(BFloat16Type, BFloat16Ty)
+                                 .HL_BUILTIN_TYPE_CASE(FloatType, FloatTy)
+                                 .HL_BUILTIN_TYPE_CASE(DoubleType, DoubleTy)
+                                 .HL_BUILTIN_TYPE_CASE(LongDoubleType, LongDoubleTy)
+                                 .HL_BUILTIN_TYPE_CASE(Float128Type, Float128Ty)
+                                 .HL_TYPE_CASE(PointerType, pty, { return Qualify(ctx.getPointerType(LiftType(pty.getElementType())),
+                                                                                  pty.getQuals()); })
+                                 .HL_TYPE_CASE(ArrayType, aty, {
             clang::QualType rty;
             clang::QualType ety = LiftType(aty.getElementType());
             if (auto size = aty.getSize()) {
@@ -187,30 +206,33 @@ clang::QualType AST::LiftType(mlir::Type ty) {
         .Default([=] (auto t) -> clang::QualType {
           t.dump();
           assert(false);
-          return {};
-        })).first->second;
+          return {}; }))
+          .first->second;
 
 #undef HL_TYPE_CASE
 #undef HL_BUILTIN_TYPE_CASE
 #undef HL_BUILTIN_INT_CASE
-}
+    }
 
-clang::QualType AST::LiftFunctionType(mlir::FunctionType ty) {
-  auto num_results = ty.getNumResults();
-  clang::QualType ret_type = ctx.VoidTy;
-  if (num_results) {
-    ret_type = LiftType(ty.getResult(0u));
-    assert(1u == num_results);
-  }
-  llvm::SmallVector<clang::QualType, 8> arg_types;
-  for (auto i = 0u, max_i = ty.getNumInputs(); i < max_i; ++i) {
-    arg_types.emplace_back(LiftType(ty.getInput(i)));
-  }
+    clang::QualType AST::LiftFunctionType(mlir::FunctionType ty)
+    {
+      auto num_results = ty.getNumResults();
+      clang::QualType ret_type = ctx.VoidTy;
+      if (num_results)
+      {
+        ret_type = LiftType(ty.getResult(0u));
+        assert(1u == num_results);
+      }
+      llvm::SmallVector<clang::QualType, 8> arg_types;
+      for (auto i = 0u, max_i = ty.getNumInputs(); i < max_i; ++i)
+      {
+        arg_types.emplace_back(LiftType(ty.getInput(i)));
+      }
 
-  clang::FunctionProtoType::ExtProtoInfo epi;
-  // TODO(pag): variadic info.
-  return ctx.getFunctionType(ret_type, arg_types, epi);
-}
+      clang::FunctionProtoType::ExtProtoInfo epi;
+      // TODO(pag): variadic info.
+      return ctx.getFunctionType(ret_type, arg_types, epi);
+    }
 
-}  // namespace ast
-}  // namespace pillar
+  } // namespace ast
+} // namespace pillar
