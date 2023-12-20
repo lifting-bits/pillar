@@ -16,7 +16,7 @@
 #include <vast/Dialect/Dialects.hpp>
 #include <vast/Dialect/HighLevel/HighLevelOps.hpp>
 #include <vast/Dialect/HighLevel/HighLevelTypes.hpp>
-#include <vast/Translation/CodeGenBuilder.hpp>
+#include <vast/CodeGen/CodeGenBuilder.hpp>
 #include <vast/Dialect/Meta/MetaTypes.hpp>
 #include <vast/Dialect/Dialects.hpp>
 

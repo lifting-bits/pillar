@@ -122,8 +122,9 @@ namespace pillar
   clang::Expr *LiftDeclRefOp(clang::DeclContext *dc, mlir::Operation &op);
   clang::Expr *LiftLNotOp(clang::DeclContext *dc, mlir::Operation &op);
   clang::Expr *LiftNotOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftBinShrOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftBinShlOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftAShrOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftLShrOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftShlOp(clang::DeclContext *dc, mlir::Operation &op);
   clang::Expr *LiftBinAndOp(clang::DeclContext *dc, mlir::Operation &op);
   clang::Expr *LiftBinOrOp(clang::DeclContext *dc, mlir::Operation &op);
   clang::Expr *LiftBinXorOp(clang::DeclContext *dc, mlir::Operation &op);

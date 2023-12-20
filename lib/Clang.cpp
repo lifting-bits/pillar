@@ -191,7 +191,7 @@ namespace pillar
   {
     auto fd = clang::FunctionDecl::Create(
         ctx, sdc, kEmptyLoc, kEmptyLoc,
-      clang::DeclarationName(id), type, ctx.getTrivialTypeSourceInfo(type),
+        clang::DeclarationName(id), type, {},
         clang::SC_None, /*isInlineSpecified=*/false);
     if (sdc != ldc)
     {

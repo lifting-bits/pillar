@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  pillar::VASTModule module = move(maybe_module.value());
+  pillar::VASTModule module = std::move(maybe_module.value());
 
   auto maybe_ast = pillar::ClangModule::Lift(module);
   if (!maybe_ast)
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  pillar::ClangModule ast = move(maybe_ast.value());
+  pillar::ClangModule ast = std::move(maybe_ast.value());
 
   (void)ast;
 

@@ -133,7 +133,7 @@ namespace pillar
 
 #define HL_TYPE_CASE(hl_type_name, var_name, ...) \
   Case<vast::hl::hl_type_name>(                   \
-        [=] (vast::hl::hl_type_name var_name) -> clang::QualType __VA_ARGS__)
+      [ =, this ](vast::hl::hl_type_name var_name) -> clang::QualType __VA_ARGS__)
 
 #define HL_BUILTIN_TYPE_CASE(hl_type_name, ctx_type_name) \
   HL_TYPE_CASE(hl_type_name, bty, {                       \
@@ -195,15 +195,13 @@ namespace pillar
               rty = ctx.getIncompleteArrayType(
                   ety, clang::ArrayType::ArraySizeModifier::Normal, 0u);
             }
-            return Qualify(rty, aty.getQuals());
-        })
-        .HL_TYPE_CASE(LValueType, lty, {
-          return LiftType(lty.getElementType());
-        })
-        .Case([=] (mlir::FunctionType fty) -> clang::QualType {
-          return LiftFunctionType(fty);
-        })
-        .Default([=] (auto t) -> clang::QualType {
+            return Qualify(rty, aty.getQuals()); })
+                                 .HL_TYPE_CASE(LValueType, lty, { return LiftType(lty.getElementType()); })
+                                 .Case([=, this](mlir::FunctionType fty) -> clang::QualType
+                                       { return LiftFunctionType(fty); })
+                                 .Default([=, this](auto t) -> clang::QualType
+                                          {
+                                            (void) this;
           t.dump();
           assert(false);
           return {}; }))
