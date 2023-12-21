@@ -5,12 +5,6 @@
 // the LICENSE file found in the root directory of this source tree.
 
 #include "AST.h"
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wbitfield-enum-conversion"
-#pragma GCC diagnostic ignored "-Wimplicit-int-conversion"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wshorten-64-to-32"
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/Decl.h>
 #include <clang/AST/PrettyPrinter.h>
@@ -19,6 +13,12 @@
 #include <clang/Basic/TargetInfo.h>
 #include <clang/Sema/Lookup.h>
 #include <clang/Sema/Sema.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wbitfield-enum-conversion"
+#pragma GCC diagnostic ignored "-Wimplicit-int-conversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wshorten-64-to-32"
 #pragma GCC diagnostic pop
 
 namespace pillar
@@ -51,7 +51,15 @@ namespace pillar
     std::shared_ptr<AST> AST::CreateFromModule(
         std::shared_ptr<mlir::Operation> op)
     {
-      llvm::Triple triple(llvm::sys::getDefaultTargetTriple());
+      mlir::Operation *currentOp = op.get();
+      auto moduleOp = dyn_cast<mlir::ModuleOp>(currentOp);
+      auto tripleAttr = moduleOp->getAttrOfType<mlir::StringAttr>("vast.core.target_triple");
+
+      llvm::Triple triple;
+      if (tripleAttr)
+      {
+        triple = llvm::Triple(tripleAttr.getValue().str());
+      }
       std::shared_ptr<AST> ast = std::make_shared<ast::AST>(triple, std::move(op));
       clang::TranslationUnitDecl *tu = ast->ctx.getTranslationUnitDecl();
       mlir::dyn_cast<mlir::ModuleOp>(ast->module.get()).getBodyRegion().walk([=](vast::hl::FuncOp op)
