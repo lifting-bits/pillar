@@ -8,6 +8,8 @@
 
 #include "Clang.h"
 #include "VAST.h"
+#include "NameProvider.h"
+#include <iostream>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wbitfield-enum-conversion"
@@ -58,12 +60,11 @@ namespace pillar
       const bool char_is_unsigned;
       const std::shared_ptr<mlir::Operation> module;
       const mlir::DataLayout dl;
+      const NameProvider np;
 
       std::unordered_map<mlir::Operation *, clang::Stmt *> op_to_stmt;
       std::unordered_map<mlir::Operation *, clang::ValueDecl *> op_to_decl;
       std::unordered_map<void *, clang::ValueDecl *> val_to_decl;
-      std::map<std::pair<clang::Type *, uint32_t>, mlir::Type> qual_ty_to_mlir_ty;
-
       // MLIR types are uniqued, so we can cache any type liftings that we've
       // performed.
       llvm::DenseMap<mlir::Type, clang::QualType> type_map;

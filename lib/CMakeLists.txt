@@ -65,6 +65,8 @@ add_library("pillar" STATIC
   "ASTDecl.cpp"
   "ASTStmt.cpp"
   "ASTType.cpp"
+  "NameProvider.cpp"
+  "NameProvider.h"
   
   "${source_include_dir}/VAST.h"
   "VAST.cpp"

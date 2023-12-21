@@ -5,7 +5,6 @@
 // the LICENSE file found in the root directory of this source tree.
 
 #include "AST.h"
-#include "Helper.h"
 
 namespace pillar
 {
@@ -352,8 +351,6 @@ namespace pillar
       clang::QualType dest_type = LiftType(op_type);
       clang::ExprValueKind evk = op_type.isa<vast::hl::LValueType>() ? clang::ExprValueKind::VK_LValue : clang::ExprValueKind::VK_PRValue;
 
-      qual_ty_to_mlir_ty.emplace(Helper::getQualSet(dest_type), op_type);
-
       return clang::CStyleCastExpr::Create(
           ctx, dest_type, evk, ConvertCastKind(op.getKind()), casted_expr,
           /* BasePath= */ nullptr, kEmptyFPO,
@@ -377,8 +374,6 @@ namespace pillar
       mlir::Value casted_val = op.getValue();
       clang::QualType dest_type = LiftType(op_type);
       clang::Expr *casted_expr = LiftValue(dc, casted_val);
-
-      qual_ty_to_mlir_ty.emplace(Helper::getQualSet(dest_type), op_type);
 
       return clang::ImplicitCastExpr::Create(
           ctx, dest_type, ConvertCastKind(op.getKind()), casted_expr,
