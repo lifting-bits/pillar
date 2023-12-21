@@ -54,88 +54,89 @@ namespace pillar
 
     class AST final : public ClangModuleImpl
     {
- private:
-  const bool char_is_unsigned;
-  const std::shared_ptr<mlir::Operation> module;
-  const mlir::DataLayout dl;
+    private:
+      const bool char_is_unsigned;
+      const std::shared_ptr<mlir::Operation> module;
+      const mlir::DataLayout dl;
 
-  std::unordered_map<mlir::Operation *, clang::Stmt *> op_to_stmt;
-  std::unordered_map<mlir::Operation *, clang::ValueDecl *> op_to_decl;
-  std::unordered_map<void *, clang::ValueDecl *> val_to_decl;
+      std::unordered_map<mlir::Operation *, clang::Stmt *> op_to_stmt;
+      std::unordered_map<mlir::Operation *, clang::ValueDecl *> op_to_decl;
+      std::unordered_map<void *, clang::ValueDecl *> val_to_decl;
+      std::map<std::pair<clang::Type *, uint32_t>, mlir::Type> qual_ty_to_mlir_ty;
 
-  // MLIR types are uniqued, so we can cache any type liftings that we've
-  // performed.
-  llvm::DenseMap<mlir::Type, clang::QualType> type_map;
+      // MLIR types are uniqued, so we can cache any type liftings that we've
+      // performed.
+      llvm::DenseMap<mlir::Type, clang::QualType> type_map;
 
-  static clang::QualType Qualify(clang::QualType ty,
-                                 vast::hl::CVRQualifiersAttr quals);
+      static clang::QualType Qualify(clang::QualType ty,
+                                     vast::hl::CVRQualifiersAttr quals);
 
-  static clang::QualType Qualify(clang::QualType ty,
-                                 vast::hl::UCVQualifiersAttr quals);
+      static clang::QualType Qualify(clang::QualType ty,
+                                     vast::hl::UCVQualifiersAttr quals);
 
-  static clang::QualType Qualify(clang::QualType ty,
-                                 vast::hl::CVQualifiersAttr quals);
+      static clang::QualType Qualify(clang::QualType ty,
+                                     vast::hl::CVQualifiersAttr quals);
 
-  bool CharIsUnsigned(void) const;
+      bool CharIsUnsigned(void) const;
 
-  // `vast.hl.expr` packages up some computation as an expression. If we see
-  // that expression used, then assume that it's actually nested. That is,
-  // in code like `(A + (B + C))`, that might, in HL, turn into:
-  //
-  //        %A = expr {  ...  }
-  //        %0 = expr {
-  //          %B = expr { ... }
-  //          %C = expr { ... }
-  //          %1 = hl.add %B, %C
-  //          hl.value.yield %1
-  //        }
-  //        %2 = hl.add %A, %0
-  //
-  // And so to get back the `(A + (B + C))`, we need to allow that tree to
-  // be implicitly build up by *excluding* things like `%B`, `%C`, and `%1`
-  // from the `%0 = expr`, so that at the usage site of `%0`, we use the
-  // lifted expression.
-  static bool ElideFromCompoundStmt(mlir::Operation &op, clang::Stmt *stmt);
+      // `vast.hl.expr` packages up some computation as an expression. If we see
+      // that expression used, then assume that it's actually nested. That is,
+      // in code like `(A + (B + C))`, that might, in HL, turn into:
+      //
+      //        %A = expr {  ...  }
+      //        %0 = expr {
+      //          %B = expr { ... }
+      //          %C = expr { ... }
+      //          %1 = hl.add %B, %C
+      //          hl.value.yield %1
+      //        }
+      //        %2 = hl.add %A, %0
+      //
+      // And so to get back the `(A + (B + C))`, we need to allow that tree to
+      // be implicitly build up by *excluding* things like `%B`, `%C`, and `%1`
+      // from the `%0 = expr`, so that at the usage site of `%0`, we use the
+      // lifted expression.
+      static bool ElideFromCompoundStmt(mlir::Operation &op, clang::Stmt *stmt);
 
- public:
-  explicit AST(const llvm::Triple &triple, std::shared_ptr<mlir::Operation> op);
+    public:
+      explicit AST(const llvm::Triple &triple, std::shared_ptr<mlir::Operation> op);
 
-  static std::shared_ptr<AST> CreateFromModule(
-      std::shared_ptr<mlir::Operation> op);
+      static std::shared_ptr<AST> CreateFromModule(
+          std::shared_ptr<mlir::Operation> op);
 
-  clang::QualType LiftType(mlir::Type ty);
+      clang::QualType LiftType(mlir::Type ty);
       clang::QualType LiftFunctionType(vast::core::FunctionType ty);
-  clang::FunctionDecl *LiftFuncOp(clang::DeclContext *sdc,
-                                  clang::DeclContext *ldc,
-                                  vast::hl::FuncOp func);
-  clang::Expr *LiftValue(clang::DeclContext *dc, mlir::Value val);
-  clang::Stmt *LiftOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Stmt *LiftOpImpl(clang::DeclContext *dc, mlir::Operation &op);
-  clang::DoStmt *LiftDoOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftCondYieldOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftValueYieldOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::ReturnStmt *LiftReturnOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftCStyleCastOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftImplicitCastOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftConstantOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftExprOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftDeclRefOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftLNotOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftNotOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::FunctionDecl *LiftFuncOp(clang::DeclContext *sdc,
+                                      clang::DeclContext *ldc,
+                                      vast::hl::FuncOp func);
+      clang::Expr *LiftValue(clang::DeclContext *dc, mlir::Value val);
+      clang::Stmt *LiftOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Stmt *LiftOpImpl(clang::DeclContext *dc, mlir::Operation &op);
+      clang::DoStmt *LiftDoOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftCondYieldOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftValueYieldOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::ReturnStmt *LiftReturnOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftCStyleCastOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftImplicitCastOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftConstantOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftExprOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftDeclRefOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftLNotOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftNotOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Expr *LiftAShrOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Expr *LiftLShrOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Expr *LiftShlOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftBinAndOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftBinOrOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftBinXorOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftAddIOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftSubIOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftMulIOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftDivUOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftDivSOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftRemUOp(clang::DeclContext *dc, mlir::Operation &op);
-  clang::Expr *LiftRemSOp(clang::DeclContext *dc, mlir::Operation &op);
-};
+      clang::Expr *LiftBinAndOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftBinOrOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftBinXorOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftAddIOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftSubIOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftMulIOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftDivUOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftDivSOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftRemUOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftRemSOp(clang::DeclContext *dc, mlir::Operation &op);
+    };
 
   } // namespace ast
 } // namespace pillar
