@@ -197,7 +197,7 @@ namespace pillar
             }
             return Qualify(rty, aty.getQuals()); })
                                  .HL_TYPE_CASE(LValueType, lty, { return LiftType(lty.getElementType()); })
-                                 .Case([=, this](mlir::FunctionType fty) -> clang::QualType
+                                 .Case([=, this](vast::core::FunctionType fty) -> clang::QualType
                                        { return LiftFunctionType(fty); })
                                  .Default([=, this](auto t) -> clang::QualType
                                           {
@@ -212,7 +212,7 @@ namespace pillar
 #undef HL_BUILTIN_INT_CASE
     }
 
-    clang::QualType AST::LiftFunctionType(mlir::FunctionType ty)
+    clang::QualType AST::LiftFunctionType(vast::core::FunctionType ty)
     {
       auto num_results = ty.getNumResults();
       clang::QualType ret_type = ctx.VoidTy;

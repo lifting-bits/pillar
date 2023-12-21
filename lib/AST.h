@@ -104,7 +104,7 @@ namespace pillar
       std::shared_ptr<mlir::Operation> op);
 
   clang::QualType LiftType(mlir::Type ty);
-  clang::QualType LiftFunctionType(mlir::FunctionType ty);
+      clang::QualType LiftFunctionType(vast::core::FunctionType ty);
   clang::FunctionDecl *LiftFuncOp(clang::DeclContext *sdc,
                                   clang::DeclContext *ldc,
                                   vast::hl::FuncOp func);
