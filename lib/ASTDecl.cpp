@@ -16,9 +16,13 @@ namespace pillar
                                          clang::DeclContext *ldc,
                                          vast::hl::FuncOp func)
     {
+
+      std::string functionName = np.FunctionName(func);
+
       clang::QualType fty = LiftType(func.getFunctionType());
+      llvm::StringRef functionNameStrRef(functionName.c_str(), functionName.length());
       clang::FunctionDecl *func_decl = CreateFunctionDecl(
-          sdc, ldc, fty, func.getName());
+          sdc, ldc, fty, functionNameStrRef);
       llvm::SmallVector<clang::ParmVarDecl *, 6u> args;
 
       ldc->addDecl(func_decl);
