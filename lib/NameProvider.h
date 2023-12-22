@@ -9,8 +9,10 @@ class NameProvider
 public:
     virtual ~NameProvider(void) = default;
 
-    // virtual std::string StructureName(mlir::Operation *tag) const;
-    // virtual std::string VariableName(mlir::Operation *var) const;
-    // virtual std::string FunctionName(mlir::Operation *func) const;
     virtual std::string FunctionParameterName(vast::hl::FuncOp &func, unsigned argument) const;
+    virtual std::string FunctionName(vast::hl::FuncOp &func) const;
+    virtual std::string VariableName(vast::hl::VarDeclOp &var) const;
+    virtual std::string StructName(vast::hl::CxxStructDeclOp &strct) const;
+    virtual std::string EnumName(vast::hl::EnumDeclOp &en) const;
+    virtual std::string TypeDefName(vast::hl::TypeDefOp &tyDef) const;
 };
