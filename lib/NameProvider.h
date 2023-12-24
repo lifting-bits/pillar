@@ -14,5 +14,6 @@ public:
     virtual std::string VariableName(vast::hl::VarDeclOp &var) const;
     virtual std::string StructName(vast::hl::CxxStructDeclOp &strct) const;
     virtual std::string EnumName(vast::hl::EnumDeclOp &en) const;
+    virtual std::string EnumConstantName(vast::hl::EnumConstantOp &en) const;
     virtual std::string TypeDefName(vast::hl::TypeDefOp &tyDef) const;
 };
