@@ -24,6 +24,10 @@ std::string NameProvider::EnumName(vast::hl::EnumDeclOp &en) const
 {
     return en.getName().str();
 }
+std::string NameProvider::EnumConstantName(vast::hl::EnumConstantOp &en) const
+{
+    return en.getName().str();
+}
 
 std::string NameProvider::TypeDefName(vast::hl::TypeDefOp &tyDef) const
 {
