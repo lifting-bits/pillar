@@ -13,6 +13,8 @@
 #include <clang/Basic/TargetInfo.h>
 #include <clang/Sema/Lookup.h>
 #include <clang/Sema/Sema.h>
+#include <vast/Util/TypeSwitch.hpp>
+#include <llvm/ADT/TypeSwitch.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wbitfield-enum-conversion"
@@ -25,6 +27,7 @@ namespace pillar
 {
   namespace ast
   {
+    std::vector<std::function<void(void)>> *AST::lift_queue = new std::vector<std::function<void(void)>>();
 
     AST::AST(const llvm::Triple &triple, std::shared_ptr<mlir::Operation> op_)
         : ClangModuleImpl(triple),
@@ -62,8 +65,45 @@ namespace pillar
       }
       std::shared_ptr<AST> ast = std::make_shared<ast::AST>(triple, std::move(op));
       clang::TranslationUnitDecl *tu = ast->ctx.getTranslationUnitDecl();
-      mlir::dyn_cast<mlir::ModuleOp>(ast->module.get()).getBodyRegion().walk([=](vast::hl::FuncOp op)
-                                                                             { (void)ast->LiftFuncOp(tu, tu, std::move(op)); });
+
+      ///////
+      for (mlir::Operation &op : moduleOp.getBody()->getOperations())
+      {
+        // Print the operation name.
+        llvm::TypeSwitch<mlir::Operation *>(&op)
+            .Case([&](vast::hl::FuncOp)
+                  {
+                                              // std::cout << op.getName().getStringRef().str() << "\n";
+                                              (void)ast->LiftFuncOp(tu, tu, mlir::dyn_cast<vast::hl::FuncOp>(std::move(op))); })
+            .Case([&](vast::hl::VarDeclOp)
+                  {  
+                    // std::cout << op.getName().getStringRef().str() << "\n";
+                                            (void)ast->LiftVarDeclOp(tu, tu, mlir::dyn_cast<vast::hl::VarDeclOp>(std::move(op))); })
+            .Case([&](vast::hl::TypeDefOp)
+                  {  
+                    // std::cout << op.getName().getStringRef().str() << "\n";
+                                            (void)ast->LiftTypeDefOp(tu, tu, mlir::dyn_cast<vast::hl::TypeDefOp>(std::move(op))); })
+            .Case([&](vast::hl::EnumDeclOp)
+                  {
+                    // std::cout << op.getName().getStringRef().str() << "\n";
+                  })
+            .Case([&](vast::hl::CxxStructDeclOp)
+                  {
+                    // std::cout << op.getName().getStringRef().str() << "\n";
+                  })
+            .Case([&](vast::hl::ClassDeclOp)
+                  {
+                    // std::cout << op.getName().getStringRef().str() << "\n";
+                  })
+            .Default([&](mlir::Operation *)
+                     { std::cout << "No handler for: " << op.getName().getStringRef().str() << "\n"; });
+      }
+
+      for (size_t i = 0; i < lift_queue->size(); i++)
+      {
+        (*lift_queue)[i]();
+      }
+
       tu->dumpColor();
       tu->print(llvm::errs());
       return ast;
