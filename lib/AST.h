@@ -61,6 +61,7 @@ namespace pillar
       const std::shared_ptr<mlir::Operation> module;
       const mlir::DataLayout dl;
       const NameProvider np;
+      static std::vector<std::function<void(void)>> *lift_queue;
 
       std::unordered_map<mlir::Operation *, clang::Stmt *> op_to_stmt;
       std::unordered_map<mlir::Operation *, clang::ValueDecl *> op_to_decl;
@@ -110,6 +111,12 @@ namespace pillar
       clang::FunctionDecl *LiftFuncOp(clang::DeclContext *sdc,
                                       clang::DeclContext *ldc,
                                       vast::hl::FuncOp func);
+      void LiftVarDeclOp(clang::DeclContext *sdc,
+                         clang::DeclContext *ldc,
+                         vast::hl::VarDeclOp varDecl);
+      void LiftTypeDefOp(clang::DeclContext *sdc,
+                         clang::DeclContext *ldc,
+                         vast::hl::TypeDefOp typeDef);
       clang::Expr *LiftValue(clang::DeclContext *dc, mlir::Value val);
       clang::Stmt *LiftOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Stmt *LiftOpImpl(clang::DeclContext *dc, mlir::Operation &op);
