@@ -113,10 +113,10 @@ namespace pillar
                                       vast::hl::FuncOp func);
       void LiftVarDeclOp(clang::DeclContext *sdc,
                          clang::DeclContext *ldc,
-                         vast::hl::VarDeclOp varDecl);
+                         vast::hl::VarDeclOp var_decl_op);
       void LiftTypeDefOp(clang::DeclContext *sdc,
                          clang::DeclContext *ldc,
-                         vast::hl::TypeDefOp typeDef);
+                         vast::hl::TypeDefOp type_def_op);
       clang::Expr *LiftValue(clang::DeclContext *dc, mlir::Value val);
       clang::Stmt *LiftOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Stmt *LiftOpImpl(clang::DeclContext *dc, mlir::Operation &op);

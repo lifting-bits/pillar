@@ -1,8 +1,13 @@
-#include "Clang.h"
-#include "VAST.h"
-#include <vast/Dialect/HighLevel/HighLevelOps.hpp>
-#include <vast/Dialect/HighLevel/HighLevelTypes.hpp>
-#include <vast/Interfaces/TypeQualifiersInterfaces.hpp>
+#include <string>
+namespace vast::hl
+{
+    class FuncOp;
+    class VarDeclOp;
+    class CxxStructDeclOp;
+    class EnumDeclOp;
+    class EnumConstantOp;
+    class TypeDefOp;
+}
 
 class NameProvider
 {
@@ -15,5 +20,5 @@ public:
     virtual std::string StructName(vast::hl::CxxStructDeclOp &strct) const;
     virtual std::string EnumName(vast::hl::EnumDeclOp &en) const;
     virtual std::string EnumConstantName(vast::hl::EnumConstantOp &en) const;
-    virtual std::string TypeDefName(vast::hl::TypeDefOp &tyDef) const;
+    virtual std::string TypeDefName(vast::hl::TypeDefOp &type_def_op) const;
 };

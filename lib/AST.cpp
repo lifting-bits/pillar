@@ -56,12 +56,12 @@ namespace pillar
     {
       mlir::Operation *currentOp = op.get();
       auto moduleOp = dyn_cast<mlir::ModuleOp>(currentOp);
-      auto tripleAttr = moduleOp->getAttrOfType<mlir::StringAttr>("vast.core.target_triple");
+      auto triple_attr = moduleOp->getAttrOfType<mlir::StringAttr>("vast.core.target_triple");
 
       llvm::Triple triple;
-      if (tripleAttr)
+      if (triple_attr)
       {
-        triple = llvm::Triple(tripleAttr.getValue().str());
+        triple = llvm::Triple(triple_attr.getValue().str());
       }
       std::shared_ptr<AST> ast = std::make_shared<ast::AST>(triple, std::move(op));
       clang::TranslationUnitDecl *tu = ast->ctx.getTranslationUnitDecl();
@@ -72,29 +72,14 @@ namespace pillar
         // Print the operation name.
         llvm::TypeSwitch<mlir::Operation *>(&op)
             .Case([&](vast::hl::FuncOp)
-                  {
-                                              // std::cout << op.getName().getStringRef().str() << "\n";
-                                              (void)ast->LiftFuncOp(tu, tu, mlir::dyn_cast<vast::hl::FuncOp>(std::move(op))); })
+                  { (void)ast->LiftFuncOp(tu, tu, mlir::dyn_cast<vast::hl::FuncOp>(std::move(op))); })
             .Case([&](vast::hl::VarDeclOp)
-                  {  
-                    // std::cout << op.getName().getStringRef().str() << "\n";
-                                            (void)ast->LiftVarDeclOp(tu, tu, mlir::dyn_cast<vast::hl::VarDeclOp>(std::move(op))); })
+                  { (void)ast->LiftVarDeclOp(tu, tu, mlir::dyn_cast<vast::hl::VarDeclOp>(std::move(op))); })
             .Case([&](vast::hl::TypeDefOp)
-                  {  
-                    // std::cout << op.getName().getStringRef().str() << "\n";
-                                            (void)ast->LiftTypeDefOp(tu, tu, mlir::dyn_cast<vast::hl::TypeDefOp>(std::move(op))); })
-            .Case([&](vast::hl::EnumDeclOp)
-                  {
-                    // std::cout << op.getName().getStringRef().str() << "\n";
-                  })
-            .Case([&](vast::hl::CxxStructDeclOp)
-                  {
-                    // std::cout << op.getName().getStringRef().str() << "\n";
-                  })
-            .Case([&](vast::hl::ClassDeclOp)
-                  {
-                    // std::cout << op.getName().getStringRef().str() << "\n";
-                  })
+                  { (void)ast->LiftTypeDefOp(tu, tu, mlir::dyn_cast<vast::hl::TypeDefOp>(std::move(op))); })
+            .Case([&](vast::hl::EnumDeclOp) {})
+            .Case([&](vast::hl::CxxStructDeclOp) {})
+            .Case([&](vast::hl::ClassDeclOp) {})
             .Default([&](mlir::Operation *)
                      { std::cout << "No handler for: " << op.getName().getStringRef().str() << "\n"; });
       }

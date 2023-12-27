@@ -1,4 +1,9 @@
 #include "NameProvider.h"
+#include "Clang.h"
+#include "VAST.h"
+#include <vast/Dialect/HighLevel/HighLevelOps.hpp>
+#include <vast/Dialect/HighLevel/HighLevelTypes.hpp>
+#include <vast/Interfaces/TypeQualifiersInterfaces.hpp>
 
 std::string NameProvider::FunctionParameterName(vast::hl::FuncOp &func, unsigned argument) const
 {
@@ -29,7 +34,7 @@ std::string NameProvider::EnumConstantName(vast::hl::EnumConstantOp &en) const
     return en.getName().str();
 }
 
-std::string NameProvider::TypeDefName(vast::hl::TypeDefOp &tyDef) const
+std::string NameProvider::TypeDefName(vast::hl::TypeDefOp &type_def_op) const
 {
-    return tyDef.getName().str();
+    return type_def_op.getName().str();
 }

@@ -11,18 +11,18 @@ namespace pillar
 {
   namespace ast
   {
-
+    static constexpr clang::SourceLocation kEmptyLoc;
     clang::FunctionDecl *AST::LiftFuncOp(clang::DeclContext *sdc,
                                          clang::DeclContext *ldc,
                                          vast::hl::FuncOp func)
     {
 
-      std::string functionName = np.FunctionName(func);
+      std::string function_name = np.FunctionName(func);
 
       clang::QualType fty = LiftType(func.getFunctionType());
-      llvm::StringRef functionNameStrRef(functionName.c_str(), functionName.length());
+      llvm::StringRef function_name_str_ref(function_name.c_str(), function_name.length());
       clang::FunctionDecl *func_decl = CreateFunctionDecl(
-          sdc, ldc, fty, functionNameStrRef);
+          sdc, ldc, fty, function_name_str_ref);
       llvm::SmallVector<clang::ParmVarDecl *, 6u> args;
 
       ldc->addDecl(func_decl);
@@ -40,9 +40,9 @@ namespace pillar
       {
 
         // TODO(pag): Figure out how to get this from VAST.
-        std::string argNameStr = np.FunctionParameterName(func, arg_i++);
+        std::string arg_name_str = np.FunctionParameterName(func, arg_i++);
         clang::IdentifierInfo *arg_name =
-            CreateIdentifier(argNameStr);
+            CreateIdentifier(arg_name_str);
         clang::QualType arg_ty = LiftType(arg.getType());
         clang::ParmVarDecl *arg_decl = sema.CheckParameter(
             func_decl, clang::SourceLocation(), clang::SourceLocation{},
@@ -63,8 +63,8 @@ namespace pillar
         assert(body.getBlocks().empty());
         return func_decl;
       }
-      AST::lift_queue->emplace_back([&body, func_decl, functionName, this](void)
-                                    {
+      auto lift_body = [=, &body, this](void)
+      {
                                       // Lift each statement from the function body, collecting them into
                                       // `body_stmts`.
                                       std::vector<clang::Stmt *> body_stmts;
@@ -82,22 +82,22 @@ namespace pillar
 
                                       clang::FPOptionsOverride fpo;
                                       clang::CompoundStmt *body_stmt = clang::CompoundStmt::Create(
-                                          ctx, body_stmts, fpo, clang::SourceLocation(), clang::SourceLocation());
-                                      func_decl->setBody(body_stmt);
-                                      // std::cout << "func " << functionName << " body lifted\n";
-                                    });
+                                          ctx, body_stmts, fpo, kEmptyLoc,  kEmptyLoc);
+                                      func_decl->setBody(body_stmt); };
+
+      AST::lift_queue->emplace_back(std::move(lift_body));
 
       return func_decl;
     }
     void AST::LiftVarDeclOp(clang::DeclContext *sdc,
                             clang::DeclContext *ldc,
-                            vast::hl::VarDeclOp varDecl)
+                            vast::hl::VarDeclOp var_decl_op)
     {
       std::cout << "VarDecl Lifted\n";
     }
     void AST::LiftTypeDefOp(clang::DeclContext *sdc,
                             clang::DeclContext *ldc,
-                            vast::hl::TypeDefOp typeDef)
+                            vast::hl::TypeDefOp type_def_op)
     {
       std::cout << "TypeDef Lifted\n";
     }
