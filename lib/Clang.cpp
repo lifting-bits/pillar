@@ -199,6 +199,20 @@ namespace pillar
     }
     return fd;
   }
+  clang::VarDecl *ClangModuleImpl::CreateVarDecl(clang::DeclContext *sdc, clang::DeclContext *ldc,
+                                                 const clang::QualType &type, clang::IdentifierInfo *id)
+  {
+    clang::VarDecl *clangVarDecl =
+        clang::VarDecl::Create(ctx, sdc, kEmptyLoc, kEmptyLoc,
+                               id, type, nullptr,
+                               clang::SC_None);
+    if (sdc != ldc)
+    {
+      clangVarDecl->setLexicalDeclContext(ldc);
+    }
+
+    return clangVarDecl;
+  }
 
   clang::DoStmt *ClangModuleImpl::CreateDo(clang::Expr *cond, clang::Stmt *body)
   {

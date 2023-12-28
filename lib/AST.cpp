@@ -27,7 +27,22 @@ namespace pillar
 {
   namespace ast
   {
-    std::vector<std::function<void(void)>> *AST::lift_queue = new std::vector<std::function<void(void)>>();
+    void AST::AddToLiftQueue(std::function<void(void)> lift)
+    {
+      lift_queue.emplace_back(lift);
+    }
+
+    void AST::LiftIf(bool condition, std::function<void(void)> lift)
+    {
+      if (condition)
+      {
+        lift();
+      }
+      else
+      {
+        AddToLiftQueue(std::move(lift));
+      }
+    }
 
     AST::AST(const llvm::Triple &triple, std::shared_ptr<mlir::Operation> op_)
         : ClangModuleImpl(triple),
@@ -71,12 +86,12 @@ namespace pillar
       {
         // Print the operation name.
         llvm::TypeSwitch<mlir::Operation *>(&op)
-            .Case([&](vast::hl::FuncOp)
-                  { (void)ast->LiftFuncOp(tu, tu, mlir::dyn_cast<vast::hl::FuncOp>(std::move(op))); })
-            .Case([&](vast::hl::VarDeclOp)
-                  { (void)ast->LiftVarDeclOp(tu, tu, mlir::dyn_cast<vast::hl::VarDeclOp>(std::move(op))); })
-            .Case([&](vast::hl::TypeDefOp)
-                  { (void)ast->LiftTypeDefOp(tu, tu, mlir::dyn_cast<vast::hl::TypeDefOp>(std::move(op))); })
+            .Case([&](vast::hl::FuncOp func_op)
+                  { (void)ast->LiftFuncOp(tu, tu, func_op); })
+            .Case([&](vast::hl::VarDeclOp var_op)
+                  { (void)ast->LiftVarDeclOp(tu, tu, var_op); })
+            .Case([&](vast::hl::TypeDefOp ty_def_op)
+                  { (void)ast->LiftTypeDefOp(tu, tu, ty_def_op); })
             .Case([&](vast::hl::EnumDeclOp) {})
             .Case([&](vast::hl::CxxStructDeclOp) {})
             .Case([&](vast::hl::ClassDeclOp) {})
@@ -84,9 +99,9 @@ namespace pillar
                      { std::cout << "No handler for: " << op.getName().getStringRef().str() << "\n"; });
       }
 
-      for (size_t i = 0; i < lift_queue->size(); i++)
+      for (size_t i = 0; i < ast->lift_queue.size(); i++)
       {
-        (*lift_queue)[i]();
+        ast->lift_queue[i]();
       }
 
       tu->dumpColor();
@@ -134,8 +149,9 @@ namespace pillar
         return CreateDeclRef(decl_it->second);
       }
 
-      val.dump();
+      // val.dump();
       assert(false);
+      std::cout << "OMG!\n";
       return nullptr;
     }
 

@@ -32,6 +32,7 @@ namespace clang
   class Stmt;
   class UnaryOperator;
   class ValueDecl;
+  class VarDecl;
 } // namespace clang
 namespace vast
 {
@@ -66,6 +67,11 @@ namespace pillar
     {
       return CreateFunctionDecl(sdc, ldc, type, CreateIdentifier(name));
     }
+    inline clang::VarDecl *CreateVarDeclFromStrRef(clang::DeclContext *sdc, clang::DeclContext *ldc,
+                                                   const clang::QualType &type, const llvm::StringRef &name)
+    {
+      return CreateVarDecl(sdc, ldc, type, CreateIdentifier(name));
+    }
 
     clang::FunctionDecl *CreateFunctionDecl(
         clang::DeclContext *sdc, clang::DeclContext *ldc,
@@ -74,11 +80,8 @@ namespace pillar
     clang::DoStmt *CreateDo(clang::Expr *cond, clang::Stmt *body);
     clang::DeclRefExpr *CreateDeclRef(clang::ValueDecl *val);
     clang::ParenExpr *CreateParen(clang::Expr *expr);
-    // void CreateVarDecl()
-    // {
-    //   std::cout << "VarDecl created";
-    // }
-
+    clang::VarDecl *CreateVarDecl(clang::DeclContext *sdc, clang::DeclContext *ldc,
+                                  const clang::QualType &type, clang::IdentifierInfo *id);
     // Unary operators
     clang::UnaryOperator *CreateUnaryOp(clang::UnaryOperatorKind opc,
                                         clang::Expr *expr);

@@ -61,7 +61,7 @@ namespace pillar
       const std::shared_ptr<mlir::Operation> module;
       const mlir::DataLayout dl;
       const NameProvider np;
-      static std::vector<std::function<void(void)>> *lift_queue;
+      std::vector<std::function<void(void)>> lift_queue;
 
       std::unordered_map<mlir::Operation *, clang::Stmt *> op_to_stmt;
       std::unordered_map<mlir::Operation *, clang::ValueDecl *> op_to_decl;
@@ -103,6 +103,9 @@ namespace pillar
     public:
       explicit AST(const llvm::Triple &triple, std::shared_ptr<mlir::Operation> op);
 
+      void AddToLiftQueue(std::function<void(void)> lift);
+      void LiftIf(bool condition, std::function<void(void)> lift);
+
       static std::shared_ptr<AST> CreateFromModule(
           std::shared_ptr<mlir::Operation> op);
 
@@ -111,9 +114,9 @@ namespace pillar
       clang::FunctionDecl *LiftFuncOp(clang::DeclContext *sdc,
                                       clang::DeclContext *ldc,
                                       vast::hl::FuncOp func);
-      void LiftVarDeclOp(clang::DeclContext *sdc,
-                         clang::DeclContext *ldc,
-                         vast::hl::VarDeclOp var_decl_op);
+      clang::VarDecl *LiftVarDeclOp(clang::DeclContext *sdc,
+                                    clang::DeclContext *ldc,
+                                    vast::hl::VarDeclOp var_decl_op);
       void LiftTypeDefOp(clang::DeclContext *sdc,
                          clang::DeclContext *ldc,
                          vast::hl::TypeDefOp type_def_op);
@@ -121,6 +124,9 @@ namespace pillar
       clang::Stmt *LiftOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Stmt *LiftOpImpl(clang::DeclContext *dc, mlir::Operation &op);
       clang::DoStmt *LiftDoOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::DeclStmt *LiftVarDeclOp(clang::DeclContext *dc, mlir::Operation &op_);
+      clang::Expr *LiftInitListExpr(clang::DeclContext *dc, mlir::Operation &op_);
+      clang::Stmt *LiftAssignOp(clang::DeclContext *dc, mlir::Operation &op_);
       clang::Expr *LiftCondYieldOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Expr *LiftValueYieldOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::ReturnStmt *LiftReturnOp(clang::DeclContext *dc, mlir::Operation &op);
@@ -128,6 +134,7 @@ namespace pillar
       clang::Expr *LiftImplicitCastOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Expr *LiftConstantOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Expr *LiftExprOp(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftBlockExpr(clang::DeclContext *dc, mlir::Block &block);
       clang::Expr *LiftDeclRefOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Expr *LiftLNotOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Expr *LiftNotOp(clang::DeclContext *dc, mlir::Operation &op);

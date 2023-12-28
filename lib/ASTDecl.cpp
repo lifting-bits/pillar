@@ -25,7 +25,7 @@ namespace pillar
           sdc, ldc, fty, function_name_str_ref);
       llvm::SmallVector<clang::ParmVarDecl *, 6u> args;
 
-      ldc->addDecl(func_decl);
+      sdc->addDecl(func_decl);
 
       // Base case; make sure we can always find this function.
       mlir::Operation *op = reinterpret_cast<mlir::Operation *>(
@@ -65,35 +65,56 @@ namespace pillar
       }
       auto lift_body = [=, &body, this](void)
       {
-                                      // Lift each statement from the function body, collecting them into
-                                      // `body_stmts`.
-                                      std::vector<clang::Stmt *> body_stmts;
-                                      for (mlir::Operation &op : body.front())
-                                      {
+        // Lift each statement from the function body, collecting them into
+        // `body_stmts`.
+        std::vector<clang::Stmt *> body_stmts;
+        for (mlir::Operation &op : body.front())
+        {
 
-                                        if (clang::Stmt *stmt = LiftOp(func_decl, op))
-                                        {
-                                          if (!ElideFromCompoundStmt(op, stmt))
-                                          {
-                                            body_stmts.emplace_back(stmt);
-                                          }
-                                        }
-                                      }
+          if (clang::Stmt *stmt = LiftOp(func_decl, op))
+          {
+            if (!ElideFromCompoundStmt(op, stmt))
+            {
+              body_stmts.emplace_back(stmt);
+            }
+          }
+        }
 
-                                      clang::FPOptionsOverride fpo;
-                                      clang::CompoundStmt *body_stmt = clang::CompoundStmt::Create(
-                                          ctx, body_stmts, fpo, kEmptyLoc,  kEmptyLoc);
-                                      func_decl->setBody(body_stmt); };
+        clang::FPOptionsOverride fpo;
+        clang::CompoundStmt *body_stmt = clang::CompoundStmt::Create(
+            ctx, body_stmts, fpo, kEmptyLoc, kEmptyLoc);
+        func_decl->setBody(body_stmt);
+      };
 
-      AST::lift_queue->emplace_back(std::move(lift_body));
+      AST::AddToLiftQueue(std::move(lift_body));
 
       return func_decl;
     }
-    void AST::LiftVarDeclOp(clang::DeclContext *sdc,
-                            clang::DeclContext *ldc,
-                            vast::hl::VarDeclOp var_decl_op)
+    clang::VarDecl *AST::LiftVarDeclOp(clang::DeclContext *sdc,
+                                       clang::DeclContext *ldc,
+                                       vast::hl::VarDeclOp var_decl_op)
     {
-      std::cout << "VarDecl Lifted\n";
+
+      std::string name = np.VariableName(var_decl_op);
+      mlir::Type varType = var_decl_op.getType();
+      // // Create Clang QualType from MLIR Type
+      clang::QualType clangType = LiftType(varType);
+      clang::VarDecl *var_decl = CreateVarDeclFromStrRef(sdc, ldc, clangType, name);
+      sdc->addDecl(var_decl);
+      op_to_decl.emplace(
+          var_decl_op,
+          var_decl);
+      mlir::Region *init = &(var_decl_op.getInitializer());
+
+      AddToLiftQueue([=, this]()
+                     {
+      for (mlir::Block &block : init->getBlocks())
+      {
+        var_decl->setInit(LiftBlockExpr(sdc, block));
+        break;
+      } });
+
+      return var_decl;
     }
     void AST::LiftTypeDefOp(clang::DeclContext *sdc,
                             clang::DeclContext *ldc,
