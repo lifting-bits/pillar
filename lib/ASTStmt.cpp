@@ -5,6 +5,7 @@
 // the LICENSE file found in the root directory of this source tree.
 
 #include "AST.h"
+#include "Util.h"
 
 namespace pillar
 {
@@ -234,6 +235,24 @@ namespace pillar
       return result_expr;
     }
 
+    clang::Expr *AST::LiftBlockExpr(clang::DeclContext *dc, mlir::Block &block)
+    {
+      clang::Expr *result_expr = nullptr;
+      for (mlir::Operation &op : block.getOperations())
+      {
+        if (clang::Stmt *sub_expr = LiftOp(dc, op))
+        {
+          if (mlir::isa<vast::hl::ValueYieldOp>(op))
+          {
+            assert(!result_expr);
+            result_expr = clang::dyn_cast<clang::Expr>(sub_expr);
+          }
+        }
+      }
+      assert(result_expr != nullptr);
+      return result_expr;
+    }
+
     // Lift a literal constant. The value is stored in an attribute. E.g.:
     //
     //      %12 = hl.const #hl.integer<0> : !hl.int
@@ -278,9 +297,9 @@ namespace pillar
               [=, this](mlir::StringAttr v) -> clang::Expr *
               {
                 (void)this;
-                v.dump();
-                assert(false);
-                return nullptr;
+                auto val = v.getValue();
+                auto type{ctx.getStringLiteralArrayType(ctx.CharTy, val.size())};
+                return clang::StringLiteral::Create(ctx, val, clang::StringLiteral::StringKind::Ordinary, false, type, kEmptyLoc);
               })
           .Default(
               [=, this](mlir::TypedAttr v) -> clang::Expr *
@@ -417,6 +436,52 @@ namespace pillar
 
       return CreateDo(cond_expr, body);
     }
+
+    clang::DeclStmt *AST::LiftVarDeclOp(clang::DeclContext *dc, mlir::Operation &op_)
+    {
+      auto var_decl = LiftVarDeclOp(dc, dc, mlir::dyn_cast<vast::hl::VarDeclOp>(op_));
+      return new (ctx) clang::DeclStmt(clang::DeclGroupRef(var_decl), kEmptyLoc,
+                                       kEmptyLoc);
+    }
+
+    clang::Expr *AST::LiftInitListExpr(clang::DeclContext *dc, mlir::Operation &op_)
+    {
+      vast::hl::InitListExpr op = mlir::dyn_cast<vast::hl::InitListExpr>(op_);
+
+      mlir::Operation::operand_range elements = op.getElements();
+
+      std::vector<clang::Expr *> expressions;
+
+      for (mlir::Value operand : elements)
+      {
+        mlir::Operation *definingOp = operand.getDefiningOp();
+
+        if (definingOp)
+        {
+          auto *liftedDefStmt = LiftOp(dc, *definingOp);
+          if (auto liftedDefExpr = clang::dyn_cast<clang::Expr>(liftedDefStmt))
+          {
+            expressions.push_back(liftedDefExpr);
+          }
+        }
+      }
+
+      return new (ctx) clang::InitListExpr(ctx, kEmptyLoc, expressions, kEmptyLoc);
+    }
+
+    clang::Stmt *AST::LiftAssignOp(clang::DeclContext *dc,
+                                   mlir::Operation &op_)
+    {
+      vast::hl::AssignOp op = mlir::dyn_cast<vast::hl::AssignOp>(op_);
+
+      clang::Expr *src_expr = LiftValue(dc, op.getSrc());
+      clang::Expr *dst_expr = LiftValue(dc, op.getDst());
+
+      assert(dst_expr != nullptr);
+      assert(src_expr != nullptr);
+      return CreateAssign(dst_expr, src_expr);
+    }
+
     // TODO(bmt): add more cases
     clang::Stmt *AST::LiftOpImpl(clang::DeclContext *dc, mlir::Operation &op)
     {
@@ -473,7 +538,14 @@ namespace pillar
         return LiftDoOp(dc, op);
       case HlOpKind::kReturnOp:
         return LiftReturnOp(dc, op);
+      case HlOpKind::kAssignOp:
+        return LiftAssignOp(dc, op);
+      case HlOpKind::kInitListExpr:
+        return LiftInitListExpr(dc, op);
+      case HlOpKind::kVarDeclOp:
+        return LiftVarDeclOp(dc, op);
       default:
+        std::cout << "No Lifter found for op!\n";
         op.dump();
         return nullptr;
       }
