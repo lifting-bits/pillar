@@ -448,22 +448,11 @@ namespace pillar
     {
       vast::hl::InitListExpr op = mlir::dyn_cast<vast::hl::InitListExpr>(op_);
 
-      mlir::Operation::operand_range elements = op.getElements();
-
       std::vector<clang::Expr *> expressions;
 
-      for (mlir::Value operand : elements)
+      for (mlir::Value operand : op.getElements())
       {
-        mlir::Operation *definingOp = operand.getDefiningOp();
-
-        if (definingOp)
-        {
-          auto *liftedDefStmt = LiftOp(dc, *definingOp);
-          if (auto liftedDefExpr = clang::dyn_cast<clang::Expr>(liftedDefStmt))
-          {
-            expressions.push_back(liftedDefExpr);
-          }
-        }
+        expressions.push_back(LiftValue(dc, operand));
       }
 
       return new (ctx) clang::InitListExpr(ctx, kEmptyLoc, expressions, kEmptyLoc);
