@@ -234,7 +234,22 @@ namespace pillar
       assert(result_expr != nullptr);
       return result_expr;
     }
+    clang::CompoundStmt *AST::LiftRegion(clang::DeclContext *dc, mlir::Region &region)
+    {
+      std::vector<clang::Stmt *> body_stmts;
+      for (mlir::Operation &body_op : region.getOps())
+      {
+        if (clang::Stmt *body_stmt = LiftOp(dc, body_op))
+        {
+          if (!ElideFromCompoundStmt(body_op, body_stmt))
+          {
+            body_stmts.push_back(body_stmt);
+          }
+        }
+      }
 
+      return CreateCompoundStmt(body_stmts);
+    }
     clang::Expr *AST::LiftBlockExpr(clang::DeclContext *dc, mlir::Block &block)
     {
       clang::Expr *result_expr = nullptr;
@@ -242,7 +257,7 @@ namespace pillar
       {
         if (clang::Stmt *sub_expr = LiftOp(dc, op))
         {
-          if (mlir::isa<vast::hl::ValueYieldOp>(op))
+          if (mlir::isa<vast::hl::ValueYieldOp>(op) || mlir::isa<vast::hl::CondYieldOp>(op) || mlir::isa<vast::hl::PostIncOp>(op))
           {
             assert(!result_expr);
             result_expr = clang::dyn_cast<clang::Expr>(sub_expr);
@@ -470,6 +485,126 @@ namespace pillar
       assert(src_expr != nullptr);
       return CreateAssign(dst_expr, src_expr);
     }
+    clang::IfStmt *AST::LiftIfOp(clang::DeclContext *dc, mlir::Operation &op_)
+    {
+
+      vast::hl::IfOp op = mlir::dyn_cast<vast::hl::IfOp>(op_);
+      bool has_else = op.hasElse();
+      clang::Expr *cond_expr = nullptr;
+      for (mlir::Block &block : op.getCondRegion().getBlocks())
+      {
+        cond_expr = LiftBlockExpr(dc, block);
+        break;
+      }
+
+      clang::CompoundStmt *then_stmt = LiftRegion(dc, op.getThenRegion());
+      clang::CompoundStmt *else_stmt = LiftRegion(dc, op.getElseRegion());
+
+      assert(cond_expr != nullptr);
+      assert(then_stmt != nullptr);
+
+      return CreateIf(cond_expr, then_stmt, has_else, else_stmt);
+    }
+    clang::WhileStmt *AST::LiftWhileOp(clang::DeclContext *dc, mlir::Operation &op_)
+    {
+      vast::hl::WhileOp op = mlir::dyn_cast<vast::hl::WhileOp>(op_);
+      clang::Expr *cond_expr = nullptr;
+      for (mlir::Block &block : op.getCondRegion().getBlocks())
+      {
+        cond_expr = LiftBlockExpr(dc, block);
+        break;
+      }
+      clang::CompoundStmt *body = LiftRegion(dc, op.getBodyRegion());
+
+      return CreateWhile(cond_expr, body);
+    }
+    clang::CompoundStmt *AST::LiftScopeOp(clang::DeclContext *dc, mlir::Operation &op_)
+    {
+      vast::core::ScopeOp op = mlir::dyn_cast<vast::core::ScopeOp>(op_);
+      auto scope_stmt = LiftRegion(dc, op.getBody());
+      return scope_stmt;
+    }
+    clang::Expr *AST::LiftCmpOp(clang::DeclContext *dc, mlir::Operation &op_)
+    {
+      vast::hl::CmpOp op = mlir::dyn_cast<vast::hl::CmpOp>(op_);
+      clang::Expr *lhs_expr = LiftValue(dc, op.getLhs());
+      clang::Expr *rhs_expr = LiftValue(dc, op.getRhs());
+      switch (op.getPredicate())
+      {
+      case vast::hl::Predicate::eq:
+        return CreateEQ(lhs_expr, rhs_expr);
+      case vast::hl::Predicate::ne:
+        return CreateNE(lhs_expr, rhs_expr);
+      case vast::hl::Predicate::slt:
+      case vast::hl::Predicate::ult:
+        return CreateLT(lhs_expr, rhs_expr);
+      case vast::hl::Predicate::sgt:
+      case vast::hl::Predicate::ugt:
+        return CreateGT(lhs_expr, rhs_expr);
+      case vast::hl::Predicate::sle:
+      case vast::hl::Predicate::ule:
+        return CreateLE(lhs_expr, rhs_expr);
+      case vast::hl::Predicate::sge:
+      case vast::hl::Predicate::uge:
+        return CreateGE(lhs_expr, rhs_expr);
+      default:
+        throw std::invalid_argument("Unsupported comparison operation");
+      }
+      return nullptr;
+    }
+    clang::ForStmt *AST::LiftForOp(clang::DeclContext *dc, mlir::Operation &op_)
+    {
+
+      vast::hl::ForOp op = mlir::dyn_cast<vast::hl::ForOp>(op_);
+      clang::Expr *cond_expr = nullptr;
+      for (mlir::Block &block : op.getCondRegion().getBlocks())
+      {
+        cond_expr = LiftBlockExpr(dc, block);
+        break;
+      }
+
+      clang::Expr *inc = nullptr;
+      for (mlir::Block &block : op.getIncrRegion())
+      {
+
+        inc = LiftBlockExpr(dc, block);
+      }
+      clang::CompoundStmt *body = LiftRegion(dc, op.getBodyRegion());
+
+      return CreateFor(nullptr, cond_expr, inc, body);
+    }
+    clang::UnaryOperator *AST::LiftPostIncOp(clang::DeclContext *dc, mlir::Operation &op_)
+    {
+      vast::hl::PostIncOp op = mlir::dyn_cast<vast::hl::PostIncOp>(op_);
+
+      clang::Expr *sub_expr = LiftValue(dc, op.getArg());
+      assert(sub_expr != nullptr);
+      return CreateUnaryOp(clang::UO_PostInc, sub_expr);
+    }
+    clang::UnaryOperator *AST::LiftPostDecOp(clang::DeclContext *dc, mlir::Operation &op_)
+    {
+      vast::hl::PostDecOp op = mlir::dyn_cast<vast::hl::PostDecOp>(op_);
+
+      clang::Expr *sub_expr = LiftValue(dc, op.getArg());
+      assert(sub_expr != nullptr);
+      return CreateUnaryOp(clang::UO_PostDec, sub_expr);
+    }
+    clang::UnaryOperator *AST::LiftPreIncOp(clang::DeclContext *dc, mlir::Operation &op_)
+    {
+      vast::hl::PreIncOp op = mlir::dyn_cast<vast::hl::PreIncOp>(op_);
+
+      clang::Expr *sub_expr = LiftValue(dc, op.getArg());
+      assert(sub_expr != nullptr);
+      return CreateUnaryOp(clang::UO_PreInc, sub_expr);
+    }
+    clang::UnaryOperator *AST::LiftPreDecOp(clang::DeclContext *dc, mlir::Operation &op_)
+    {
+      vast::hl::PreDecOp op = mlir::dyn_cast<vast::hl::PreDecOp>(op_);
+
+      clang::Expr *sub_expr = LiftValue(dc, op.getArg());
+      assert(sub_expr != nullptr);
+      return CreateUnaryOp(clang::UO_PreDec, sub_expr);
+    }
 
     // TODO(bmt): add more cases
     clang::Stmt *AST::LiftOpImpl(clang::DeclContext *dc, mlir::Operation &op)
@@ -477,8 +612,14 @@ namespace pillar
       switch (KindOf(op))
       {
       case HlOpKind::kUnknown:
-        assert(false);
-        return nullptr;
+        clang::Stmt *ret;
+        llvm::TypeSwitch<mlir::Operation *>(&op)
+            .Case([&](vast::core::ScopeOp scope)
+                  { ret = LiftScopeOp(dc, op); })
+            .Default([&](mlir::Operation *)
+                     { std::cout << "No handler for this unknown op!" << endl; 
+                     ret=nullptr; });
+        return ret;
       case HlOpKind::kBinShlOp:
         return LiftShlOp(dc, op);
       case HlOpKind::kBinAShrOp:
@@ -533,6 +674,22 @@ namespace pillar
         return LiftInitListExpr(dc, op);
       case HlOpKind::kVarDeclOp:
         return LiftVarDeclOp(dc, op);
+      case HlOpKind::kIfOp:
+        return LiftIfOp(dc, op);
+      case HlOpKind::kWhileOp:
+        return LiftWhileOp(dc, op);
+      case HlOpKind::kForOp:
+        return LiftForOp(dc, op);
+      case HlOpKind::kPostIncOp:
+        return LiftPostIncOp(dc, op);
+      case HlOpKind::kPostDecOp:
+        return LiftPostDecOp(dc, op);
+      case HlOpKind::kPreIncOp:
+        return LiftPreIncOp(dc, op);
+      case HlOpKind::kPreDecOp:
+        return LiftPreDecOp(dc, op);
+      case HlOpKind::kCmpOp:
+        return LiftCmpOp(dc, op);
       default:
         std::cout << "No Lifter found for op!\n";
         op.dump();

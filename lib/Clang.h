@@ -8,6 +8,7 @@
 
 #include <pillar/Clang.h>
 #include <clang/AST/OperationKinds.h>
+#include <vector>
 
 namespace llvm
 {
@@ -33,6 +34,10 @@ namespace clang
   class UnaryOperator;
   class ValueDecl;
   class VarDecl;
+  class IfStmt;
+  class CompoundStmt;
+  class WhileStmt;
+  class ForStmt;
 } // namespace clang
 namespace vast
 {
@@ -78,6 +83,10 @@ namespace pillar
         const clang::QualType &type, clang::IdentifierInfo *id);
 
     clang::DoStmt *CreateDo(clang::Expr *cond, clang::Stmt *body);
+    clang::CompoundStmt *CreateCompoundStmt(std::vector<clang::Stmt *> body_stmts);
+    clang::IfStmt *CreateIf(clang::Expr *cond, clang::Stmt *then_val, bool has_else, clang::Stmt *else_val = nullptr);
+    clang::WhileStmt *CreateWhile(clang::Expr *cond, clang::Stmt *body);
+    clang::ForStmt *CreateFor(clang::Expr *init, clang::Expr *cond, clang::Expr *inc, clang::Stmt *body);
     clang::DeclRefExpr *CreateDeclRef(clang::ValueDecl *val);
     clang::ParenExpr *CreateParen(clang::Expr *expr);
     clang::VarDecl *CreateVarDecl(clang::DeclContext *sdc, clang::DeclContext *ldc,

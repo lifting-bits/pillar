@@ -47,6 +47,7 @@ namespace pillar
   {
 
     static constexpr clang::SourceLocation kEmptyLoc;
+    static const clang::FPOptionsOverride kEmptyFPO;
 
     class LLVMInitializer
     {
@@ -234,7 +235,36 @@ namespace pillar
     assert(dre != nullptr);
     return dre;
   }
+  clang::CompoundStmt *ClangModuleImpl::CreateCompoundStmt(std::vector<clang::Stmt *> body_stmts)
+  {
+    return clang::CompoundStmt::Create(
+        ctx, body_stmts, kEmptyFPO, kEmptyLoc, kEmptyLoc);
+  }
+  clang::IfStmt *ClangModuleImpl::CreateIf(clang::Expr *cond, clang::Stmt *then_val, bool has_else, clang::Stmt *else_val)
+  {
+    auto cr{sema.ActOnCondition(/*Scope=*/nullptr, kEmptyLoc, cond,
+                                clang::Sema::ConditionKind::Boolean)};
+    assert(!cr.isInvalid());
+    auto if_stmt{clang::IfStmt::CreateEmpty(ctx, has_else, false, false)};
+    if_stmt->setCond(cr.get().second);
+    if_stmt->setThen(then_val);
+    if (has_else)
+      if_stmt->setElse(else_val);
+    if_stmt->setStatementKind(clang::IfStatementKind::Ordinary);
+    return if_stmt;
+  }
+  clang::WhileStmt *ClangModuleImpl::CreateWhile(clang::Expr *cond, clang::Stmt *body)
+  {
 
+    return clang::WhileStmt::Create(
+        ctx, nullptr, cond, body, kEmptyLoc,
+        kEmptyLoc, kEmptyLoc);
+  }
+
+  clang::ForStmt *pillar::ClangModuleImpl::CreateFor(clang::Expr *init, clang::Expr *cond, clang::Expr *inc, clang::Stmt *body)
+  {
+    return new (ctx) clang::ForStmt(ctx, init, cond, nullptr, inc, body, kEmptyLoc, kEmptyLoc, kEmptyLoc);
+  }
   clang::ParenExpr *ClangModuleImpl::CreateParen(clang::Expr *expr)
   {
     return new (ctx) clang::ParenExpr(kEmptyLoc, kEmptyLoc, expr);
