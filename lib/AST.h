@@ -45,6 +45,7 @@
 #include <string>
 #include <unordered_map>
 #include <vast/Dialect/HighLevel/HighLevelOps.hpp>
+#include <vast/Dialect/Core/CoreOps.hpp>
 #include <vast/Dialect/HighLevel/HighLevelTypes.hpp>
 #include <vast/Interfaces/TypeQualifiersInterfaces.hpp>
 #include <vast/Util/TypeSwitch.hpp>
@@ -121,12 +122,23 @@ namespace pillar
                          clang::DeclContext *ldc,
                          vast::hl::TypeDefOp type_def_op);
       clang::Expr *LiftValue(clang::DeclContext *dc, mlir::Value val);
+      clang::CompoundStmt *LiftRegion(clang::DeclContext *dc,
+                                      mlir::Region &region);
       clang::Stmt *LiftOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Stmt *LiftOpImpl(clang::DeclContext *dc, mlir::Operation &op);
       clang::DoStmt *LiftDoOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::DeclStmt *LiftVarDeclOp(clang::DeclContext *dc, mlir::Operation &op_);
       clang::Expr *LiftInitListExpr(clang::DeclContext *dc, mlir::Operation &op_);
+      clang::UnaryOperator *LiftPostIncOp(clang::DeclContext *dc, mlir::Operation &op_);
+      clang::UnaryOperator *LiftPostDecOp(clang::DeclContext *dc, mlir::Operation &op_);
+      clang::UnaryOperator *LiftPreIncOp(clang::DeclContext *dc, mlir::Operation &op_);
+      clang::UnaryOperator *LiftPreDecOp(clang::DeclContext *dc, mlir::Operation &op_);
       clang::Stmt *LiftAssignOp(clang::DeclContext *dc, mlir::Operation &op_);
+      clang::IfStmt *LiftIfOp(clang::DeclContext *dc, mlir::Operation &op_);
+      clang::WhileStmt *LiftWhileOp(clang::DeclContext *dc, mlir::Operation &op_);
+      clang::ForStmt *LiftForOp(clang::DeclContext *dc, mlir::Operation &op_);
+      clang::CompoundStmt *LiftScopeOp(clang::DeclContext *dc, mlir::Operation &op_);
+      clang::Expr *LiftCmpOp(clang::DeclContext *dc, mlir::Operation &op_);
       clang::Expr *LiftCondYieldOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Expr *LiftValueYieldOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::ReturnStmt *LiftReturnOp(clang::DeclContext *dc, mlir::Operation &op);
