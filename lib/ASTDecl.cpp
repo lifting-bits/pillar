@@ -98,29 +98,71 @@ namespace pillar
       std::string name = np.VariableName(var_decl_op);
       mlir::Type varType = var_decl_op.getType();
       // // Create Clang QualType from MLIR Type
-      clang::QualType clangType = LiftType(varType);
-      clang::VarDecl *var_decl = CreateVarDeclFromStrRef(sdc, ldc, clangType, name);
+      clang::QualType clang_type = LiftType(varType);
+      clang::VarDecl *var_decl = CreateVarDeclFromStrRef(sdc, ldc, clang_type, name);
       sdc->addDecl(var_decl);
       op_to_decl.emplace(
           var_decl_op,
           var_decl);
-      mlir::Region *init = &(var_decl_op.getInitializer());
+      if (mlir::Region *init = &(var_decl_op.getInitializer()))
+      {
 
-      AddToLiftQueue([=, this]()
-                     {
+        AddToLiftQueue([=, this]()
+                       {
       for (mlir::Block &block : init->getBlocks())
       {
         var_decl->setInit(LiftBlockExpr(sdc, block));
         break;
       } });
+      }
 
       return var_decl;
     }
-    void AST::LiftTypeDefOp(clang::DeclContext *sdc,
-                            clang::DeclContext *ldc,
-                            vast::hl::TypeDefOp type_def_op)
+    clang::FieldDecl *AST::LiftFieldDeclOp(clang::DeclContext *sdc,
+                                           clang::DeclContext *ldc, clang::RecordDecl *record,
+                                           vast::hl::FieldDeclOp field_decl_op)
+    {
+
+      // std::string name = np.FieldName(field_decl_op);
+      std::string name = field_decl_op.getName().str();
+      mlir::Type decl_ype = field_decl_op.getType();
+      clang::QualType clang_ype = LiftType(decl_ype);
+      clang::FieldDecl *field_decl = createFieldDecl(sdc, ldc, record, name, clang_ype);
+      return field_decl;
+    }
+    clang::RecordDecl *AST::LiftStructOp(clang::DeclContext *sdc,
+                                         clang::DeclContext *ldc,
+                                         vast::hl::StructDeclOp strct_op)
+    {
+      std::string name = np.StructName(strct_op);
+      clang::RecordDecl *record_decl = createRecordDecl(sdc, ldc, name);
+
+      mlir::Region *fields = &(strct_op.getFields());
+
+      for (mlir::Block &block : fields->getBlocks())
+      {
+        for (mlir::Operation &op : block.getOperations())
+        {
+
+          auto field_decl = LiftFieldDeclOp(record_decl, record_decl, clang::dyn_cast<clang::RecordDecl>(record_decl), mlir::dyn_cast<vast::hl::FieldDeclOp>(op));
+          record_decl->addDecl(field_decl);
+        }
+      }
+
+      sdc->addDecl(record_decl);
+      record_decl->completeDefinition();
+      op_to_decl.emplace(
+          strct_op,
+          clang::dyn_cast<ValueDecl>(record_decl));
+
+      return record_decl;
+    }
+    clang::TypedefDecl *AST::LiftTypeDefOp(clang::DeclContext *sdc,
+                                           clang::DeclContext *ldc,
+                                           vast::hl::TypeDefOp type_def_op)
     {
       std::cout << "TypeDef Lifted\n";
+      return nullptr;
     }
   } // namespace ast
 } // namespace pillar
