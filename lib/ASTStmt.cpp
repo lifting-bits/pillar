@@ -413,6 +413,22 @@ namespace pillar
           ctx, dest_type, ConvertCastKind(op.getKind()), casted_expr,
           /* BasePath= */ nullptr, evk, kEmptyFPO);
     }
+    clang::Expr *AST::LiftCondition(clang::DeclContext *dc, mlir::Region &region)
+    {
+      clang::Expr *cond_expr = nullptr;
+      for (mlir::Operation &cond_op : region.getOps())
+      {
+        if (clang::Stmt *stmt = LiftOp(dc, cond_op))
+        {
+          if (mlir::isa<vast::hl::CondYieldOp>(cond_op))
+          {
+            assert(!cond_expr);
+            cond_expr = clang::dyn_cast<clang::Expr>(stmt);
+          }
+        }
+      }
+      return cond_expr;
+    }
 
     // Lift a do operation into a `do { .... } while (...);` statement.
     clang::DoStmt *AST::LiftDoOp(clang::DeclContext *dc, mlir::Operation &op_)
@@ -436,18 +452,7 @@ namespace pillar
           ctx, body_stmts, kEmptyFPO, kEmptyLoc, kEmptyLoc);
 
       // Lift each statement in the condition.
-      clang::Expr *cond_expr = nullptr;
-      for (mlir::Operation &cond_op : op.getCondRegion().getOps())
-      {
-        if (clang::Stmt *stmt = LiftOp(dc, cond_op))
-        {
-          if (mlir::isa<vast::hl::CondYieldOp>(cond_op))
-          {
-            assert(!cond_expr);
-            cond_expr = clang::dyn_cast<clang::Expr>(stmt);
-          }
-        }
-      }
+      clang::Expr *cond_expr = LiftCondition(dc, op.getCondRegion());
 
       return CreateDo(cond_expr, body);
     }
@@ -490,12 +495,7 @@ namespace pillar
 
       vast::hl::IfOp op = mlir::dyn_cast<vast::hl::IfOp>(op_);
       bool has_else = op.hasElse();
-      clang::Expr *cond_expr = nullptr;
-      for (mlir::Block &block : op.getCondRegion().getBlocks())
-      {
-        cond_expr = LiftBlockExpr(dc, block);
-        break;
-      }
+      clang::Expr *cond_expr = LiftCondition(dc, op.getCondRegion());
 
       clang::CompoundStmt *then_stmt = LiftRegion(dc, op.getThenRegion());
       clang::CompoundStmt *else_stmt = LiftRegion(dc, op.getElseRegion());
@@ -508,12 +508,7 @@ namespace pillar
     clang::WhileStmt *AST::LiftWhileOp(clang::DeclContext *dc, mlir::Operation &op_)
     {
       vast::hl::WhileOp op = mlir::dyn_cast<vast::hl::WhileOp>(op_);
-      clang::Expr *cond_expr = nullptr;
-      for (mlir::Block &block : op.getCondRegion().getBlocks())
-      {
-        cond_expr = LiftBlockExpr(dc, block);
-        break;
-      }
+      clang::Expr *cond_expr = LiftCondition(dc, op.getCondRegion());
       clang::CompoundStmt *body = LiftRegion(dc, op.getBodyRegion());
 
       return CreateWhile(cond_expr, body);
@@ -556,12 +551,7 @@ namespace pillar
     {
 
       vast::hl::ForOp op = mlir::dyn_cast<vast::hl::ForOp>(op_);
-      clang::Expr *cond_expr = nullptr;
-      for (mlir::Block &block : op.getCondRegion().getBlocks())
-      {
-        cond_expr = LiftBlockExpr(dc, block);
-        break;
-      }
+      clang::Expr *cond_expr = LiftCondition(dc, op.getCondRegion());
 
       clang::Expr *inc = nullptr;
       for (mlir::Block &block : op.getIncrRegion())
@@ -612,14 +602,13 @@ namespace pillar
       switch (KindOf(op))
       {
       case HlOpKind::kUnknown:
-        clang::Stmt *ret;
-        llvm::TypeSwitch<mlir::Operation *>(&op)
+        // clang::Stmt *ret;
+        return llvm::TypeSwitch<mlir::Operation *, clang::Stmt *>(&op)
             .Case([&](vast::core::ScopeOp scope)
-                  { ret = LiftScopeOp(dc, op); })
+                  { return LiftScopeOp(dc, op); })
             .Default([&](mlir::Operation *)
                      { std::cout << "No handler for this unknown op!" << endl; 
-                     ret=nullptr; });
-        return ret;
+                     return nullptr; });
       case HlOpKind::kBinShlOp:
         return LiftShlOp(dc, op);
       case HlOpKind::kBinAShrOp:

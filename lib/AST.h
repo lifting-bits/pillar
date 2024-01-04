@@ -126,6 +126,7 @@ namespace pillar
                                       mlir::Region &region);
       clang::Stmt *LiftOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::Stmt *LiftOpImpl(clang::DeclContext *dc, mlir::Operation &op);
+      clang::Expr *LiftCondition(clang::DeclContext *dc, mlir::Region &region);
       clang::DoStmt *LiftDoOp(clang::DeclContext *dc, mlir::Operation &op);
       clang::DeclStmt *LiftVarDeclOp(clang::DeclContext *dc, mlir::Operation &op_);
       clang::Expr *LiftInitListExpr(clang::DeclContext *dc, mlir::Operation &op_);
