@@ -118,9 +118,16 @@ namespace pillar
       clang::VarDecl *LiftVarDeclOp(clang::DeclContext *sdc,
                                     clang::DeclContext *ldc,
                                     vast::hl::VarDeclOp var_decl_op);
-      void LiftTypeDefOp(clang::DeclContext *sdc,
-                         clang::DeclContext *ldc,
-                         vast::hl::TypeDefOp type_def_op);
+      clang::TypedefDecl *LiftTypeDefOp(clang::DeclContext *sdc,
+                                        clang::DeclContext *ldc,
+                                        vast::hl::TypeDefOp type_def_op);
+
+      clang::RecordDecl *LiftStructOp(clang::DeclContext *sdc,
+                                      clang::DeclContext *ldc,
+                                      vast::hl::StructDeclOp strct_op);
+      clang::FieldDecl *LiftFieldDeclOp(clang::DeclContext *sdc,
+                                        clang::DeclContext *ldc, clang::RecordDecl *record,
+                                        vast::hl::FieldDeclOp field_decl_op);
       clang::Expr *LiftValue(clang::DeclContext *dc, mlir::Value val);
       clang::CompoundStmt *LiftRegion(clang::DeclContext *dc,
                                       mlir::Region &region);

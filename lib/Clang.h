@@ -20,6 +20,8 @@ namespace clang
   class ASTContext;
   class ASTUnit;
   class BinaryOperator;
+  class RecordDecl;
+  class FieldDecl;
   class DeclContext;
   class DeclRefExpr;
   class DoStmt;
@@ -81,6 +83,12 @@ namespace pillar
     clang::FunctionDecl *CreateFunctionDecl(
         clang::DeclContext *sdc, clang::DeclContext *ldc,
         const clang::QualType &type, clang::IdentifierInfo *id);
+
+    clang::RecordDecl *createRecordDecl(
+        clang::DeclContext *sdc, clang::DeclContext *ldc,
+        const llvm::StringRef &name);
+    clang::FieldDecl *createFieldDecl(clang::DeclContext *sdc, clang::DeclContext *ldc, clang::RecordDecl *record,
+                                      const llvm::StringRef &name, const clang::QualType &type);
 
     clang::DoStmt *CreateDo(clang::Expr *cond, clang::Stmt *body);
     clang::CompoundStmt *CreateCompoundStmt(std::vector<clang::Stmt *> body_stmts);

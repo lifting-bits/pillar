@@ -214,6 +214,33 @@ namespace pillar
 
     return clangVarDecl;
   }
+  clang::FieldDecl *ClangModuleImpl::createFieldDecl(clang::DeclContext *sdc, clang::DeclContext *ldc, clang::RecordDecl *record,
+                                                     const llvm::StringRef &name, const clang::QualType &type)
+  {
+
+    auto id = CreateIdentifier(name);
+
+    return sema.CheckFieldDecl(
+        clang::DeclarationName(id), type, ctx.getTrivialTypeSourceInfo(type),
+        record, kEmptyLoc, /*Mutable=*/false, /*BitWidth=*/nullptr,
+        clang::ICIS_NoInit, kEmptyLoc,
+        clang::AccessSpecifier::AS_none,
+        /*PrevDecl=*/nullptr);
+  }
+  clang::RecordDecl *ClangModuleImpl::createRecordDecl(
+      clang::DeclContext *sdc, clang::DeclContext *ldc,
+      const llvm::StringRef &name)
+  {
+    clang::RecordDecl *record_decl = clang::RecordDecl::Create(ctx, clang::TagTypeKind::TTK_Struct,
+                                                               sdc, kEmptyLoc,
+                                                               kEmptyLoc, CreateIdentifier(name));
+    if (sdc != ldc)
+    {
+      record_decl->setLexicalDeclContext(ldc);
+    }
+
+    return record_decl;
+  }
 
   clang::DoStmt *ClangModuleImpl::CreateDo(clang::Expr *cond, clang::Stmt *body)
   {

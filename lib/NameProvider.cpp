@@ -20,7 +20,7 @@ std::string NameProvider::VariableName(vast::hl::VarDeclOp &var) const
     return var.getName().str();
 }
 
-std::string NameProvider::StructName(vast::hl::CxxStructDeclOp &strct) const
+std::string NameProvider::StructName(vast::hl::StructDeclOp &strct) const
 {
     return strct.getName().str();
 }
