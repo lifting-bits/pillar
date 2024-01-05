@@ -112,6 +112,8 @@ namespace pillar
 
       clang::QualType LiftType(mlir::Type ty);
       clang::QualType LiftFunctionType(vast::core::FunctionType ty);
+      clang::QualType LiftElaboratedType(vast::hl::ElaboratedType ty);
+      clang::QualType LiftRecordType(vast::hl::RecordType rty);
       clang::FunctionDecl *LiftFuncOp(clang::DeclContext *sdc,
                                       clang::DeclContext *ldc,
                                       vast::hl::FuncOp func);

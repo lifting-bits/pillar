@@ -38,6 +38,7 @@
 #include <string>
 #include <vast/Dialect/HighLevel/HighLevelOps.hpp>
 #include <vast/Dialect/HighLevel/HighLevelTypes.hpp>
+#include <vast/Dialect/HighLevel/HighLevelUtils.hpp>
 #include <vast/Interfaces/TypeQualifiersInterfaces.hpp>
 #include <vast/Util/TypeSwitch.hpp>
 
@@ -176,6 +177,7 @@ namespace pillar
                                  .HL_BUILTIN_INT_CASE(LongLongType, LongLongTy, UnsignedLongLongTy)
                                  .HL_BUILTIN_INT_CASE(Int128Type, Int128Ty, UnsignedInt128Ty)
                                  .HL_BUILTIN_TYPE_CASE(HalfType, HalfTy)
+                                 //  .HL_BUILTIN_TYPE_CASE(ElaboratedType, UnsignedIntTy)
                                  .HL_BUILTIN_TYPE_CASE(BFloat16Type, BFloat16Ty)
                                  .HL_BUILTIN_TYPE_CASE(FloatType, FloatTy)
                                  .HL_BUILTIN_TYPE_CASE(DoubleType, DoubleTy)
@@ -199,6 +201,10 @@ namespace pillar
                                  .HL_TYPE_CASE(LValueType, lty, { return LiftType(lty.getElementType()); })
                                  .Case([=, this](vast::core::FunctionType fty) -> clang::QualType
                                        { return LiftFunctionType(fty); })
+                                 .Case([=, this](vast::hl::ElaboratedType ety) -> clang::QualType
+                                       { return LiftElaboratedType(ety); })
+                                 .Case([=, this](vast::hl::RecordType rty) -> clang::QualType
+                                       { return LiftRecordType(rty); })
                                  .Default([=, this](auto t) -> clang::QualType
                                           {
                                             (void) this;
@@ -230,6 +236,54 @@ namespace pillar
       clang::FunctionProtoType::ExtProtoInfo epi;
       // TODO(pag): variadic info.
       return ctx.getFunctionType(ret_type, arg_types, epi);
+    }
+    clang::QualType AST::LiftElaboratedType(vast::hl::ElaboratedType ety)
+    {
+      clang::ElaboratedTypeKeyword keyword = clang::ElaboratedTypeKeyword::ETK_None;
+      mlir::Type element_type = ety.getElementType();
+
+      clang::QualType clang_element_type = LiftType(element_type);
+
+      if (auto clang_record_type = clang::dyn_cast<clang::RecordType>(clang_element_type))
+      {
+        if (clang::RecordDecl *record_decl = clang_record_type->getDecl())
+        {
+          if (record_decl->isStruct())
+          {
+            keyword = clang::ElaboratedTypeKeyword::ETK_Struct;
+          }
+          else if (record_decl->isInterface())
+          {
+            keyword = clang::ElaboratedTypeKeyword::ETK_Interface;
+          }
+          else if (record_decl->isClass())
+          {
+            keyword = clang::ElaboratedTypeKeyword::ETK_Class;
+          }
+          else if (record_decl->isUnion())
+          {
+            keyword = clang::ElaboratedTypeKeyword::ETK_Union;
+          }
+          else if (record_decl->isEnum())
+          {
+            keyword = clang::ElaboratedTypeKeyword::ETK_Enum;
+          }
+        }
+      }
+
+      return ctx.getElaboratedType(keyword, nullptr, clang_element_type);
+    }
+    clang::QualType AST::LiftRecordType(vast::hl::RecordType rty)
+    {
+
+      if (auto maybe_record_op = definition_of(rty, mlir::dyn_cast<vast::vast_module>(module.get())))
+      {
+        vast::hl::StructDeclOp *record_op = &(maybe_record_op.value());
+
+        return ctx.getRecordType(LiftStructOp(ctx.getTranslationUnitDecl(), ctx.getTranslationUnitDecl(), *record_op));
+      }
+
+      return {};
     }
 
   } // namespace ast

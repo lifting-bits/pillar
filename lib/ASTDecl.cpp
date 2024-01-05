@@ -99,22 +99,24 @@ namespace pillar
       mlir::Type varType = var_decl_op.getType();
       // // Create Clang QualType from MLIR Type
       clang::QualType clang_type = LiftType(varType);
+      std::cout << "varDecl Type: " << clang_type.getAsString() << "\n";
+
       clang::VarDecl *var_decl = CreateVarDeclFromStrRef(sdc, ldc, clang_type, name);
       sdc->addDecl(var_decl);
       op_to_decl.emplace(
           var_decl_op,
           var_decl);
-      if (mlir::Region *init = &(var_decl_op.getInitializer()))
-      {
+      // if (mlir::Region *init = &(var_decl_op.getInitializer()))
+      // {
 
-        AddToLiftQueue([=, this]()
-                       {
-      for (mlir::Block &block : init->getBlocks())
-      {
-        var_decl->setInit(LiftBlockExpr(sdc, block));
-        break;
-      } });
-      }
+      //   AddToLiftQueue([=, this]()
+      //                  {
+      // for (mlir::Block &block : init->getBlocks())
+      // {
+      //   var_decl->setInit(LiftBlockExpr(sdc, block));
+      //   break;
+      // } });
+      // }
 
       return var_decl;
     }

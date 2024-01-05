@@ -596,6 +596,11 @@ namespace pillar
       return CreateUnaryOp(clang::UO_PreDec, sub_expr);
     }
 
+    clang::UnaryOperator *AST::LiftRecordMemberOp()
+    {
+      return nullptr;
+    }
+
     // TODO(bmt): add more cases
     clang::Stmt *AST::LiftOpImpl(clang::DeclContext *dc, mlir::Operation &op)
     {
@@ -679,9 +684,12 @@ namespace pillar
         return LiftPreDecOp(dc, op);
       case HlOpKind::kCmpOp:
         return LiftCmpOp(dc, op);
+      case HlOpKind::kRecordMemberOp:
+        return LiftRecordMemberOp(dc, op);
+
       default:
-        std::cout << "No Lifter found for op!\n";
-        op.dump();
+        std::cout << "No Lifter found for op: " << op.getName().getStringRef().str() << "\n";
+        // op.dump();
         return nullptr;
       }
     }

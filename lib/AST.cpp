@@ -120,7 +120,8 @@ namespace pillar
       clang::Stmt *ret = LiftOpImpl(dc, op);
       if (!ret)
       {
-        op.dump();
+        std::cout << "returned NULL for: " << op.getName().getStringRef().str() << "\n";
+        // op.dump();
         assert(false);
         return nullptr;
       }
@@ -152,7 +153,7 @@ namespace pillar
 
       // val.dump();
       assert(false);
-      std::cout << "OMG!\n";
+      std::cout << "value lift failed!\n";
       return nullptr;
     }
 
