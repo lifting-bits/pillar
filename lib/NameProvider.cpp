@@ -20,9 +20,14 @@ std::string NameProvider::VariableName(vast::hl::VarDeclOp &var) const
     return var.getName().str();
 }
 
-std::string NameProvider::StructName(vast::hl::StructDeclOp &strct) const
+std::string NameProvider::StructName(vast::hl::StructDeclOp &str) const
 {
-    return strct.getName().str();
+    return str.getName().str();
+}
+
+std::string NameProvider::FieldName(vast::hl::FieldDeclOp &field) const
+{
+    return field.getName().str();
 }
 
 std::string NameProvider::EnumName(vast::hl::EnumDeclOp &en) const

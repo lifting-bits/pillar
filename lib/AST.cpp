@@ -94,8 +94,8 @@ namespace pillar
                   { (void)ast->LiftTypeDefOp(tu, tu, ty_def_op); })
             .Case([&](vast::hl::StructDeclOp strct_op)
                   { (void)ast->LiftStructOp(tu, tu, strct_op); })
-            .Case([&](vast::hl::EnumDeclOp enum_op) {})
-            .Case([&](vast::hl::ClassDeclOp class_op) {})
+            // .Case([&](vast::hl::EnumDeclOp enum_op) {})
+            // .Case([&](vast::hl::ClassDeclOp class_op) {})
             .Default([&](mlir::Operation *)
                      { std::cout << "No handler for: " << op.getName().getStringRef().str() << "\n"; });
       }

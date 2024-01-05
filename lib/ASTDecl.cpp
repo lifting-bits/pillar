@@ -123,8 +123,7 @@ namespace pillar
                                            vast::hl::FieldDeclOp field_decl_op)
     {
 
-      // std::string name = np.FieldName(field_decl_op);
-      std::string name = field_decl_op.getName().str();
+      std::string name = np.FieldName(field_decl_op);
       mlir::Type decl_ype = field_decl_op.getType();
       clang::QualType clang_ype = LiftType(decl_ype);
       clang::FieldDecl *field_decl = createFieldDecl(sdc, ldc, record, name, clang_ype);
@@ -144,7 +143,7 @@ namespace pillar
         for (mlir::Operation &op : block.getOperations())
         {
 
-          auto field_decl = LiftFieldDeclOp(record_decl, record_decl, clang::dyn_cast<clang::RecordDecl>(record_decl), mlir::dyn_cast<vast::hl::FieldDeclOp>(op));
+          auto field_decl = clang::dyn_cast<clang::FieldDecl>(LiftTagElementOp(record_decl, record_decl, record_decl, op));
           record_decl->addDecl(field_decl);
         }
       }
@@ -156,6 +155,19 @@ namespace pillar
           clang::dyn_cast<ValueDecl>(record_decl));
 
       return record_decl;
+    }
+    clang::Decl *AST::LiftTagElementOp(clang::DeclContext *sdc,
+                                       clang::DeclContext *ldc, clang::RecordDecl *record_decl,
+                                       mlir::Operation &op_)
+    {
+      return llvm::TypeSwitch<mlir::Operation *, clang::Decl *>(&op_)
+          .Case([&](vast::hl::FieldDeclOp field_op)
+                { return LiftFieldDeclOp(record_decl, record_decl, record_decl, field_op); })
+          .Default([&](mlir::Operation *)
+                   { std::cout << "No handler Tag: " << op_.getName().getStringRef().str() << "\n";
+                   return nullptr; });
+
+      return nullptr;
     }
     clang::TypedefDecl *AST::LiftTypeDefOp(clang::DeclContext *sdc,
                                            clang::DeclContext *ldc,
