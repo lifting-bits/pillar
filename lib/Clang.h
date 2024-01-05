@@ -86,9 +86,9 @@ namespace pillar
 
     clang::RecordDecl *createRecordDecl(
         clang::DeclContext *sdc, clang::DeclContext *ldc,
-        const llvm::StringRef &name);
+        const llvm::StringRef name);
     clang::FieldDecl *createFieldDecl(clang::DeclContext *sdc, clang::DeclContext *ldc, clang::RecordDecl *record,
-                                      const llvm::StringRef &name, const clang::QualType &type);
+                                      const llvm::StringRef name, const clang::QualType &type);
 
     clang::DoStmt *CreateDo(clang::Expr *cond, clang::Stmt *body);
     clang::CompoundStmt *CreateCompoundStmt(std::vector<clang::Stmt *> body_stmts);

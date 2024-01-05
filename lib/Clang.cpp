@@ -215,7 +215,7 @@ namespace pillar
     return clangVarDecl;
   }
   clang::FieldDecl *ClangModuleImpl::createFieldDecl(clang::DeclContext *sdc, clang::DeclContext *ldc, clang::RecordDecl *record,
-                                                     const llvm::StringRef &name, const clang::QualType &type)
+                                                     const llvm::StringRef name, const clang::QualType &type)
   {
 
     auto id = CreateIdentifier(name);
@@ -229,7 +229,7 @@ namespace pillar
   }
   clang::RecordDecl *ClangModuleImpl::createRecordDecl(
       clang::DeclContext *sdc, clang::DeclContext *ldc,
-      const llvm::StringRef &name)
+      const llvm::StringRef name)
   {
     clang::RecordDecl *record_decl = clang::RecordDecl::Create(ctx, clang::TagTypeKind::TTK_Struct,
                                                                sdc, kEmptyLoc,

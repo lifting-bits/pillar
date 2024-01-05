@@ -121,7 +121,9 @@ namespace pillar
       clang::TypedefDecl *LiftTypeDefOp(clang::DeclContext *sdc,
                                         clang::DeclContext *ldc,
                                         vast::hl::TypeDefOp type_def_op);
-
+      clang::Decl *LiftTagElementOp(clang::DeclContext *sdc,
+                                    clang::DeclContext *ldc, clang::RecordDecl *record_decl,
+                                    mlir::Operation &op_);
       clang::RecordDecl *LiftStructOp(clang::DeclContext *sdc,
                                       clang::DeclContext *ldc,
                                       vast::hl::StructDeclOp strct_op);
