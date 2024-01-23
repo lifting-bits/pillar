@@ -6,10 +6,9 @@
 # the LICENSE file found in the root directory of this source tree.
 #
 
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.27)
 
 include("cmake/ccache.cmake")
-include_directories(/home/ghost/llvm17/Install/Release/include)
 
 project("pillar" C CXX)
 

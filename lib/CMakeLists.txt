@@ -77,6 +77,38 @@ add_library("pillar" STATIC
   "Clang.h"
 )
 
+if("LLVMAArch64CodeGen" IN_LIST LLVM_AVAILABLE_LIBS)
+  set(llvm_aarch64_libs
+    LLVMAArch64CodeGen
+    LLVMAArch64AsmParser
+    LLVMAArch64Desc
+    LLVMAArch64Disassembler
+    LLVMAArch64Info
+    LLVMAArch64Utils
+  )
+endif()
+
+if("LLVMX86CodeGen" IN_LIST LLVM_AVAILABLE_LIBS)
+  set(llvm_x86_libs
+    LLVMX86CodeGen
+    LLVMX86AsmParser
+    LLVMX86Desc
+    LLVMX86Disassembler
+    LLVMX86Info
+  )
+endif()
+
+if("LLVMARMCodeGen" IN_LIST LLVM_AVAILABLE_LIBS)
+  set(llvm_arm_libs
+    LLVMARMCodeGen
+    LLVMARMAsmParser
+    LLVMARMDesc
+    LLVMARMDisassembler
+    LLVMARMInfo
+    LLVMARMUtils
+  )
+endif()
+
 target_link_libraries("pillar"
   PUBLIC
     ${VAST_LIBS}
@@ -98,34 +130,21 @@ target_link_libraries("pillar"
     clangTooling
     clangFrontendTool
     clangIndex
-     clangCodeGen
-     clangSema 
-     clangStaticAnalyzerFrontend 
-     clangStaticAnalyzerCheckers 
-     clangStaticAnalyzerCore 
-     clangARCMigrate 
-     clangRewriteFrontend 
-     clangRewrite
+    clangCodeGen
+    clangSema 
+    clangStaticAnalyzerFrontend 
+    clangStaticAnalyzerCheckers 
+    clangStaticAnalyzerCore 
+    clangARCMigrate 
+    clangRewriteFrontend 
+    clangRewrite
 
-     LLVMAArch64CodeGen
-     LLVMAArch64AsmParser
-     LLVMAArch64Desc
-     LLVMAArch64Disassembler
-     LLVMAArch64Info
-     LLVMAArch64Utils
-     LLVMX86CodeGen
-     LLVMX86AsmParser
-     LLVMX86Desc
-     LLVMX86Disassembler
-     LLVMX86Info
-     LLVMARMCodeGen
-     LLVMARMAsmParser
-     LLVMARMDesc
-     LLVMARMDisassembler
-     LLVMARMInfo
-     LLVMARMUtils
-     LLVMTarget
-     LLVMOption
+    ${llvm_aarch64_libs}
+    ${llvm_x86_libs}
+    ${llvm_arm_libs}
+
+    LLVMTarget
+    LLVMOption
 )
 
 target_include_directories("pillar"
